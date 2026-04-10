@@ -15,40 +15,61 @@
 
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #FEF9F2;
-      color: #1E293B;
+      background: #0A0F1E; /* fallback */
+      color: #E2E8F0;
       line-height: 1.5;
       padding-bottom: 80px;
+      position: relative;
+      min-height: 100vh;
     }
 
-    /* Paleta premium */
-    :root {
-      --primary: #FF6B2C;
-      --primary-dark: #E55A1E;
-      --secondary: #0A2B4E;
-      --success: #10B981;
-      --warning: #F59E0B;
-      --gray-light: #F1F5F9;
-      --gray: #94A3B8;
-      --text-dark: #1E293B;
+    /* Fondo elegante: gradiente animado (puedes reemplazar por video) */
+    .animated-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      background: linear-gradient(125deg, #0A2B4E 0%, #1A2F3F 40%, #0A0F1E 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 12s ease infinite;
     }
 
-    /* Layout */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Opcional: si quieres un video loop, descomenta y ajusta */
+    .video-loop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -3;
+      display: none; /* activar si usas video */
+    }
+
     .container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 20px;
+      position: relative;
+      z-index: 2;
     }
 
-    /* Header */
+    /* Header transparente */
     .header {
-      background: white;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      background: rgba(10, 15, 30, 0.7);
+      backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
       z-index: 100;
-      backdrop-filter: blur(10px);
-      background: rgba(255,255,255,0.95);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
     .header-content {
       display: flex;
@@ -59,80 +80,97 @@
     .logo {
       font-size: 1.8rem;
       font-weight: 800;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #FFB347, #FF6B2C);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
     }
     .menu-btn {
       background: none;
-      border: none;
-      font-size: 1.8rem;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      font-size: 1.2rem;
+      padding: 8px 16px;
+      border-radius: 40px;
       cursor: pointer;
+      transition: 0.2s;
+    }
+    .menu-btn:hover {
+      background: rgba(255,255,255,0.1);
     }
 
     /* Hero */
     .hero {
       text-align: center;
-      padding: 48px 0 32px;
+      padding: 64px 0 48px;
     }
     .hero h1 {
-      font-size: 2.2rem;
+      font-size: 2.5rem;
       font-weight: 800;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      background: linear-gradient(135deg, #FFFFFF, #FFB347);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
     .hero p {
       font-size: 1.2rem;
-      color: var(--secondary);
-      margin-bottom: 32px;
+      color: #CBD5E1;
+      max-width: 700px;
+      margin: 0 auto 32px;
     }
-    .cta-group {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
+
+    /* Botones */
     .btn {
-      padding: 14px 28px;
+      padding: 14px 32px;
       border-radius: 60px;
       font-weight: 600;
       text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+      display: inline-block;
       transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
     }
     .btn-primary {
-      background: var(--primary);
+      background: #FF6B2C;
       color: white;
       box-shadow: 0 4px 12px rgba(255,107,44,0.3);
     }
     .btn-primary:hover {
-      background: var(--primary-dark);
-      transform: scale(1.02);
+      background: #E55A1E;
+      transform: translateY(-2px);
     }
     .btn-outline {
-      border: 2px solid var(--primary);
-      color: var(--primary);
-      background: white;
+      background: transparent;
+      border: 1px solid #FF6B2C;
+      color: #FF6B2C;
+    }
+    .btn-outline:hover {
+      background: rgba(255,107,44,0.1);
     }
 
-    /* Tarjetas */
+    /* Tarjetas elegantes */
     .card {
-      background: white;
-      border-radius: 24px;
-      padding: 24px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      background: rgba(20, 30, 45, 0.7);
+      backdrop-filter: blur(8px);
+      border-radius: 28px;
+      padding: 28px;
       margin-bottom: 24px;
+      border: 1px solid rgba(255,255,255,0.08);
       transition: all 0.2s;
     }
     .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+      background: rgba(30, 45, 65, 0.8);
+      border-color: rgba(255,107,44,0.3);
+    }
+
+    /* Grids */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
     }
 
     /* Rastreador */
@@ -143,18 +181,27 @@
     }
     .track-input input {
       flex: 1;
-      padding: 16px;
-      border: 2px solid var(--gray-light);
+      padding: 16px 20px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.2);
       border-radius: 60px;
+      color: white;
       font-size: 1rem;
     }
+    .track-input input:focus {
+      outline: none;
+      border-color: #FF6B2C;
+    }
+
+    /* Timeline */
     .timeline {
       margin-top: 24px;
-      border-left: 3px solid var(--primary);
+      border-left: 2px solid #FF6B2C;
       padding-left: 20px;
     }
     .timeline-item {
       margin-bottom: 20px;
+      color: #E2E8F0;
     }
 
     /* Chat */
@@ -167,32 +214,34 @@
       margin-bottom: 16px;
     }
     .message {
-      padding: 12px 16px;
-      border-radius: 20px;
+      padding: 12px 18px;
+      border-radius: 24px;
       max-width: 80%;
     }
     .user-msg {
-      background: var(--primary);
+      background: #FF6B2C;
       color: white;
       align-self: flex-end;
     }
     .bot-msg {
-      background: var(--gray-light);
-      color: var(--text-dark);
+      background: rgba(255,255,255,0.1);
+      color: #F1F5F9;
       align-self: flex-start;
     }
 
-    /* Grids */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
+    /* Imágenes elegantes (fotos que tú subirás) */
+    .elegant-image {
+      width: 100%;
+      border-radius: 24px;
+      object-fit: cover;
+      margin: 16px 0;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
     }
 
-    /* Social embed */
+    /* Social embed (sin figuras) */
     .social-embed {
       background: #000;
-      border-radius: 20px;
+      border-radius: 24px;
       overflow: hidden;
       aspect-ratio: 9 / 16;
       max-width: 320px;
@@ -202,12 +251,14 @@
     /* Footer */
     .footer {
       text-align: center;
-      padding: 32px 0;
-      color: var(--gray);
+      padding: 40px 0;
+      color: #94A3B8;
       font-size: 0.8rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      margin-top: 40px;
     }
 
-    /* WhatsApp float */
+    /* WhatsApp flotante sin emoji */
     .whatsapp-float {
       position: fixed;
       bottom: 20px;
@@ -219,13 +270,25 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       z-index: 200;
+      font-weight: bold;
+      font-size: 0;
     }
     .whatsapp-float a {
       color: white;
-      font-size: 28px;
+      font-size: 0;
       text-decoration: none;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Se puede poner texto "WA" en lugar de ícono */
+    .whatsapp-float span {
+      font-size: 24px;
+      font-weight: bold;
     }
 
     @media (max-width: 640px) {
@@ -236,55 +299,72 @@
 </head>
 <body>
 
+<!-- Fondo animado (gradiente) -->
+<div class="animated-bg"></div>
+
+<!-- Opcional: tu loop de video (descomentar y poner la fuente) 
+<video class="video-loop" autoplay muted loop playsinline>
+  <source src="tu-loop.mp4" type="video/mp4">
+</video>
+-->
+
 <div class="whatsapp-float">
-  <a href="https://wa.me/5355555555?text=Hola%20Chambatina%2C%20necesito%20ayuda" target="_blank">💬</a>
+  <a href="https://wa.me/5355555555?text=Hola%20Chambatina%2C%20necesito%20ayuda" target="_blank">
+    <span>WA</span>
+  </a>
 </div>
 
 <header class="header">
   <div class="container header-content">
-    <div class="logo">⚡ CHAMBATINA</div>
-    <button class="menu-btn" id="menuBtn">☰</button>
+    <div class="logo">CHAMBATINA</div>
+    <button class="menu-btn" id="menuBtn">Menú</button>
   </div>
 </header>
 
 <main class="container" id="app">
-  <!-- HOME por defecto -->
+  <!-- HOME -->
   <section id="home">
     <div class="hero">
       <h1>Rastrea tu paquete, consulta con Chambita y descubre soluciones logísticas y energéticas.</h1>
-      <p>Envíos a Cuba · Asesoría real · Sistemas solares · Refiere y gana</p>
+      <p>Logística confiable · Asesoría inteligente · Sistemas solares · Refiere y gana</p>
       <div class="cta-group">
-        <a href="#" class="btn btn-primary" data-nav="track">🔍 Rastrear ahora</a>
-        <a href="#" class="btn btn-outline" data-nav="chat">💬 Preguntar a Chambita</a>
+        <a href="#" class="btn btn-primary" data-nav="track">Rastrear ahora</a>
+        <a href="#" class="btn btn-outline" data-nav="chat">Preguntar a Chambita</a>
       </div>
     </div>
 
+    <!-- Espacio para tus imágenes elegantes -->
     <div class="grid-2">
       <div class="card">
-        <h3>📦 Seguimiento premium</h3>
+        <h3>Seguimiento premium</h3>
         <p>Actualizaciones claras, timeline visual y alertas humanas.</p>
+        <!-- Aquí puedes insertar una foto tuya -->
+        <img src="https://via.placeholder.com/400x200?text=Tu+foto+logística" alt="Logística" class="elegant-image" style="margin-top:16px;">
       </div>
       <div class="card">
-        <h3>🤖 Asistente IA</h3>
+        <h3>Asistente IA</h3>
         <p>Chambita responde sobre envíos, energía, precios y más.</p>
+        <img src="https://via.placeholder.com/400x200?text=Tu+foto+IA" alt="Asistente" class="elegant-image" style="margin-top:16px;">
       </div>
       <div class="card">
-        <h3>☀️ Energía que transforma</h3>
+        <h3>Energía que transforma</h3>
         <p>Inversores, baterías y kits solares con asesoría real.</p>
+        <img src="https://via.placeholder.com/400x200?text=Tu+foto+solar" alt="Energía solar" class="elegant-image" style="margin-top:16px;">
       </div>
       <div class="card">
-        <h3>🎁 Refiere como en TikTok</h3>
-        <p>Comparte, gana comisiones y haz crecer la comunidad.</p>
+        <h3>Refiere y gana</h3>
+        <p>Comparte, obtén comisiones y haz crecer la comunidad.</p>
+        <img src="https://via.placeholder.com/400x200?text=Tu+foto+referidos" alt="Referidos" class="elegant-image" style="margin-top:16px;">
       </div>
     </div>
   </section>
 
-  <!-- RASTREADOR -->
+  <!-- RASTREADOR (sin palabra Cuba) -->
   <section id="track" style="display:none;">
     <div class="card">
-      <h2>🔎 Rastrear paquete</h2>
+      <h2>Rastrear paquete</h2>
       <div class="track-input">
-        <input type="text" id="cpkInput" placeholder="Ej: CHB-123456" autocomplete="off">
+        <input type="text" id="cpkInput" placeholder="Código CPK (ej: CHB-123456)" autocomplete="off">
         <button class="btn btn-primary" id="trackBtn">Rastrear</button>
       </div>
       <div id="trackResult"></div>
@@ -294,9 +374,9 @@
   <!-- CHAT IA -->
   <section id="chat" style="display:none;">
     <div class="card">
-      <h2>💬 Chambita — Tu asistente inteligente</h2>
+      <h2>Chambita — Tu asistente inteligente</h2>
       <div class="chat-container" id="chatMessages">
-        <div class="message bot-msg">✨ ¡Hola! Soy Chambita. Pregúntame sobre rastreo, envíos, paneles solares o lo que necesites.</div>
+        <div class="message bot-msg">Bienvenido. Soy Chambita. Pregúntame sobre rastreo, logística, paneles solares o lo que necesites.</div>
       </div>
       <div class="track-input">
         <input type="text" id="chatInput" placeholder="Escribe tu pregunta...">
@@ -305,60 +385,73 @@
     </div>
   </section>
 
-  <!-- SERVICIOS (resumen) -->
+  <!-- SERVICIOS -->
   <section id="servicios" style="display:none;">
-    <h2>📋 Nuestros servicios</h2>
+    <h2>Nuestros servicios</h2>
     <div class="grid-2">
-      <div class="card">🚚 Envíos a Cuba</div>
-      <div class="card">📦 Seguimiento de paquetes</div>
-      <div class="card">🎓 Asesoría para compras</div>
-      <div class="card">☀️ Sistemas solares</div>
-      <div class="card">🔋 Equipos energéticos</div>
-      <div class="card">🤝 Consignación de equipos</div>
+      <div class="card">Logística internacional</div>
+      <div class="card">Seguimiento de paquetes</div>
+      <div class="card">Asesoría para compras</div>
+      <div class="card">Sistemas solares</div>
+      <div class="card">Equipos energéticos</div>
+      <div class="card">Consignación de equipos</div>
     </div>
   </section>
 
   <!-- SOLAR / ENERGÍA -->
   <section id="solar" style="display:none;">
-    <h2>☀️ Energía solar para tu hogar o negocio</h2>
+    <h2>Energía solar para tu hogar o negocio</h2>
     <div class="grid-2">
-      <div class="card"><strong>Inversor 3kW</strong><br>Ideal para casas pequeñas.<br><br><a href="#" class="btn btn-outline">Consultar</a></div>
-      <div class="card"><strong>Batería Litio 5kWh</strong><br>Almacenamiento eficiente.<br><br><a href="#" class="btn btn-outline">Consultar</a></div>
-      <div class="card"><strong>Kit Solar Completo</strong><br>Paneles + inversor + instalación.<br><br><a href="#" class="btn btn-outline">Lo quiero</a></div>
+      <div class="card">
+        <strong>Inversor 3kW</strong><br>Ideal para casas pequeñas.<br><br>
+        <button class="btn btn-outline">Consultar</button>
+        <img src="https://via.placeholder.com/400x200?text=Foto+inversor" class="elegant-image">
+      </div>
+      <div class="card">
+        <strong>Batería Litio 5kWh</strong><br>Almacenamiento eficiente.<br><br>
+        <button class="btn btn-outline">Consultar</button>
+        <img src="https://via.placeholder.com/400x200?text=Foto+batería" class="elegant-image">
+      </div>
+      <div class="card">
+        <strong>Kit Solar Completo</strong><br>Paneles + inversor + instalación.<br><br>
+        <button class="btn btn-outline">Lo quiero</button>
+        <img src="https://via.placeholder.com/400x200?text=Foto+kit+solar" class="elegant-image">
+      </div>
     </div>
     <div class="card">
-      <h3>📘 Aprende sobre energía solar</h3>
+      <h3>Educación solar</h3>
       <p>¿Cuántos paneles necesito? ¿Qué batería me dura más? Chambita te guía.</p>
+      <img src="https://via.placeholder.com/800x300?text=Infografía+o+foto+educativa" class="elegant-image">
     </div>
   </section>
 
   <!-- CONSIGNACIÓN -->
   <section id="consignacion" style="display:none;">
     <div class="card">
-      <h2>📦 Deja tu equipo en consignación</h2>
+      <h2>Deja tu equipo en consignación</h2>
       <form id="consignForm">
-        <input type="text" placeholder="Tu nombre" id="owner" style="width:100%; margin-bottom:12px; padding:12px;">
-        <input type="text" placeholder="Equipo (ej: Inversor 5kW)" id="equipo" style="width:100%; margin-bottom:12px; padding:12px;">
-        <input type="number" placeholder="Precio USD" id="precio" style="width:100%; margin-bottom:12px; padding:12px;">
+        <input type="text" placeholder="Tu nombre" id="owner" style="width:100%; margin-bottom:12px; padding:12px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2); border-radius:40px; color:white;">
+        <input type="text" placeholder="Equipo (ej: Inversor 5kW)" id="equipo" style="width:100%; margin-bottom:12px; padding:12px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2); border-radius:40px; color:white;">
+        <input type="number" placeholder="Precio USD" id="precio" style="width:100%; margin-bottom:12px; padding:12px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2); border-radius:40px; color:white;">
         <button type="submit" class="btn btn-primary">Registrar para consignación</button>
       </form>
       <div id="consignList"></div>
     </div>
   </section>
 
-  <!-- REFERIDOS TIPO TIKTOK -->
+  <!-- REFERIDOS -->
   <section id="referidos" style="display:none;">
     <div class="card">
-      <h2>🎁 Gana con Chambatina — Referidos estilo TikTok</h2>
+      <h2>Gana con Chambatina — Referidos</h2>
       <p>Comparte tu link único y recibe el 10% de comisión por cada venta referida.</p>
       <button class="btn btn-primary" id="generarLink">Generar mi link de referido</button>
       <div id="linkRef" style="margin-top:16px; font-weight:bold;"></div>
     </div>
   </section>
 
-  <!-- SOCIAL FEED (TikTok/Facebook embed demo) -->
+  <!-- SOCIAL FEED -->
   <section id="social" style="display:none;">
-    <h2>🎬 Síguenos en TikTok y Facebook</h2>
+    <h2>Síguenos en TikTok y Facebook</h2>
     <div class="grid-2">
       <div class="social-embed">
         <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@chambatina/video/123456789" style="max-width:100%"> <a href="https://www.tiktok.com/@chambatina">@chambatina</a> </blockquote>
@@ -372,13 +465,13 @@
 
 <footer class="footer">
   <div class="container">
-    <p>⚡ Chambatina — Logística inteligente + Energía que transforma</p>
-    <p>🔒 Seguridad y confianza garantizadas</p>
+    <p>Chambatina — Logística inteligente + Energía que transforma</p>
+    <p>Seguridad y confianza garantizadas</p>
   </div>
 </footer>
 
 <script>
-  // Navegación simple SPA
+  // Navegación
   const sections = ['home', 'track', 'chat', 'servicios', 'solar', 'consignacion', 'referidos', 'social'];
   function showSection(id) {
     sections.forEach(sec => {
@@ -395,39 +488,35 @@
       else showSection('home');
     });
   });
-  // Menú básico
   document.getElementById('menuBtn')?.addEventListener('click', () => {
-    alert('📱 Menú: Inicio · Rastrear · Chat · Servicios · Solar · Consignación · Referidos · Social');
+    alert('Menú: Inicio · Rastrear · Chat · Servicios · Solar · Consignación · Referidos · Social');
   });
 
-  // RASTREO (simula API real)
+  // RASTREO (mock sin Cuba)
   document.getElementById('trackBtn')?.addEventListener('click', async () => {
     const cpk = document.getElementById('cpkInput').value;
     const resultDiv = document.getElementById('trackResult');
-    if(!cpk) return resultDiv.innerHTML = '<div class="card" style="margin-top:16px;">❌ Ingresa un CPK válido.</div>';
-    resultDiv.innerHTML = '<div class="card">🔍 Buscando...</div>';
-    try {
-      // Simula llamada a /api/rastreo/:cpk
-      await new Promise(r => setTimeout(r, 800));
-      const mockData = {
-        estado: 'En tránsito - Cuba',
-        fecha: '2025-04-10',
-        descripcion: 'Paquete ingresado en aduana de La Habana',
-        timeline: ['Recibido en Miami', 'En vuelo', 'En aduana Cuba', 'Próxima entrega']
-      };
-      resultDiv.innerHTML = `
-        <div class="card" style="margin-top:16px;">
-          <h3>📌 Estado: ${mockData.estado}</h3>
-          <p>📅 ${mockData.fecha} · ${mockData.descripcion}</p>
-          <div class="timeline">${mockData.timeline.map(t => `<div class="timeline-item">✅ ${t}</div>`).join('')}</div>
-          <p>💬 ¿Dudas? <a href="#" data-nav="chat">Pregunta a Chambita</a></p>
-        </div>
-      `;
-      document.querySelectorAll('[data-nav="chat"]').forEach(ln => ln.addEventListener('click', (e) => { e.preventDefault(); showSection('chat'); }));
-    } catch(e) { resultDiv.innerHTML = '<div class="card">⚠️ Error al rastrear. Intenta de nuevo.</div>'; }
+    if(!cpk) return resultDiv.innerHTML = '<div class="card" style="margin-top:16px;">Código CPK inválido.</div>';
+    resultDiv.innerHTML = '<div class="card">Buscando información...</div>';
+    await new Promise(r => setTimeout(r, 800));
+    const mockData = {
+      estado: 'En tránsito',
+      fecha: '2025-04-10',
+      descripcion: 'Paquete ingresado en centro de distribución',
+      timeline: ['Recibido en origen', 'En vuelo', 'En proceso aduanero', 'Próxima entrega']
+    };
+    resultDiv.innerHTML = `
+      <div class="card" style="margin-top:16px;">
+        <h3>Estado: ${mockData.estado}</h3>
+        <p>${mockData.fecha} · ${mockData.descripcion}</p>
+        <div class="timeline">${mockData.timeline.map(t => `<div class="timeline-item">${t}</div>`).join('')}</div>
+        <p>¿Dudas? <a href="#" data-nav="chat">Pregunta a Chambita</a></p>
+      </div>
+    `;
+    document.querySelectorAll('[data-nav="chat"]').forEach(ln => ln.addEventListener('click', (e) => { e.preventDefault(); showSection('chat'); }));
   });
 
-  // CHAT IA (usa /api/chat)
+  // CHAT IA (conecta a /api/chat)
   const chatMessages = document.getElementById('chatMessages');
   const chatInput = document.getElementById('chatInput');
   const sendChat = document.getElementById('sendChat');
@@ -444,19 +533,22 @@
         body: JSON.stringify({ message: msg, cpkContext: null })
       });
       const data = await response.json();
-      chatMessages.innerHTML += `<div class="message bot-msg">✨ ${data.reply || 'Chambita: Te ayudaré con eso.'}</div>`;
+      chatMessages.innerHTML += `<div class="message bot-msg">${data.reply || 'Chambita: Te ayudaré con eso.'}</div>`;
     } catch(e) {
-      chatMessages.innerHTML += `<div class="message bot-msg">🤖 Chambita: Ahora mismo no puedo conectarme, pero puedes contactarme por WhatsApp.</div>`;
+      chatMessages.innerHTML += `<div class="message bot-msg">Chambita: En este momento no puedo conectarme, contáctame por WhatsApp.</div>`;
     }
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
   sendChat?.addEventListener('click', sendMessage);
   chatInput?.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
 
-  // Consignación mock
+  // Consignación
   const consignForm = document.getElementById('consignForm');
   const consignList = document.getElementById('consignList');
-  let consignados = [];
+  let consignados = JSON.parse(localStorage.getItem('consignados') || '[]');
+  function mostrarConsignados() {
+    consignList.innerHTML = `<h4>Equipos en consignación</h4>` + consignados.map(c => `<div class="card">${c.equipo} - $${c.precio} (Dueño: ${c.owner})</div>`).join('');
+  }
   consignForm?.addEventListener('submit', (e) => {
     e.preventDefault();
     const owner = document.getElementById('owner').value;
@@ -469,21 +561,15 @@
       consignForm.reset();
     }
   });
-  function mostrarConsignados() {
-    const stored = localStorage.getItem('consignados');
-    if(stored) consignados = JSON.parse(stored);
-    consignList.innerHTML = `<h4>Equipos en consignación</h4>` + consignados.map(c => `<div class="card">🔹 ${c.equipo} - $${c.precio} (Dueño: ${c.owner})</div>`).join('');
-  }
   mostrarConsignados();
 
   // Referidos
   document.getElementById('generarLink')?.addEventListener('click', () => {
     const userId = 'user_' + Math.random().toString(36).substr(2, 8);
     const link = `https://chambatina.com/ref/${userId}`;
-    document.getElementById('linkRef').innerHTML = `🔗 ${link} <br> <button class="btn btn-outline" onclick="navigator.clipboard.writeText('${link}')">Copiar link</button>`;
+    document.getElementById('linkRef').innerHTML = `${link} <br> <button class="btn btn-outline" onclick="navigator.clipboard.writeText('${link}')">Copiar link</button>`;
   });
 
-  // Inicializar
   showSection('home');
 </script>
 </body>
