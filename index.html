@@ -1,576 +1,119 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Chambatina | Logística + Energía + IA</title>
-  <link rel="manifest" href="manifest.json">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+// index.js - Servidor Chambatina (proxy para rastreo por carnet)
+const express = require('express');
+const axios = require('axios');
+const cheerio = require('cheerio');
+const path = require('path');
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #0A0F1E; /* fallback */
-      color: #E2E8F0;
-      line-height: 1.5;
-      padding-bottom: 80px;
-      position: relative;
-      min-height: 100vh;
-    }
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-    /* Fondo elegante: gradiente animado (puedes reemplazar por video) */
-    .animated-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -2;
-      background: linear-gradient(125deg, #0A2B4E 0%, #1A2F3F 40%, #0A0F1E 100%);
-      background-size: 200% 200%;
-      animation: gradientShift 12s ease infinite;
-    }
+// Middlewares
+app.use(express.json());
+app.use(express.static('public')); // Aquí va tu frontend (HTML, CSS, imágenes)
 
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
+// ==================== RASTREO POR CARNET ====================
+// Endpoint que usa el frontend de Chambatina
+app.get('/api/rastreo/carnet/:carnet', async (req, res) => {
+  const carnet = req.params.carnet.trim();
+  if (!carnet) {
+    return res.status(400).json({ error: 'Debes ingresar un número de carnet' });
+  }
 
-    /* Opcional: si quieres un video loop, descomenta y ajusta */
-    .video-loop {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: -3;
-      display: none; /* activar si usas video */
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-      position: relative;
-      z-index: 2;
-    }
-
-    /* Header transparente */
-    .header {
-      background: rgba(10, 15, 30, 0.7);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 0;
-    }
-    .logo {
-      font-size: 1.8rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #FFB347, #FF6B2C);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-    .menu-btn {
-      background: none;
-      border: 1px solid rgba(255,255,255,0.3);
-      color: white;
-      font-size: 1.2rem;
-      padding: 8px 16px;
-      border-radius: 40px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .menu-btn:hover {
-      background: rgba(255,255,255,0.1);
-    }
-
-    /* Hero */
-    .hero {
-      text-align: center;
-      padding: 64px 0 48px;
-    }
-    .hero h1 {
-      font-size: 2.5rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #FFFFFF, #FFB347);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      margin-bottom: 20px;
-    }
-    .hero p {
-      font-size: 1.2rem;
-      color: #CBD5E1;
-      max-width: 700px;
-      margin: 0 auto 32px;
-    }
-
-    /* Botones */
-    .btn {
-      padding: 14px 32px;
-      border-radius: 60px;
-      font-weight: 600;
-      text-decoration: none;
-      display: inline-block;
-      transition: all 0.2s;
-      border: none;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    .btn-primary {
-      background: #FF6B2C;
-      color: white;
-      box-shadow: 0 4px 12px rgba(255,107,44,0.3);
-    }
-    .btn-primary:hover {
-      background: #E55A1E;
-      transform: translateY(-2px);
-    }
-    .btn-outline {
-      background: transparent;
-      border: 1px solid #FF6B2C;
-      color: #FF6B2C;
-    }
-    .btn-outline:hover {
-      background: rgba(255,107,44,0.1);
-    }
-
-    /* Tarjetas elegantes */
-    .card {
-      background: rgba(20, 30, 45, 0.7);
-      backdrop-filter: blur(8px);
-      border-radius: 28px;
-      padding: 28px;
-      margin-bottom: 24px;
-      border: 1px solid rgba(255,255,255,0.08);
-      transition: all 0.2s;
-    }
-    .card:hover {
-      background: rgba(30, 45, 65, 0.8);
-      border-color: rgba(255,107,44,0.3);
-    }
-
-    /* Grids */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-    }
-
-    /* Rastreador */
-    .track-input {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .track-input input {
-      flex: 1;
-      padding: 16px 20px;
-      background: rgba(0,0,0,0.4);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 60px;
-      color: white;
-      font-size: 1rem;
-    }
-    .track-input input:focus {
-      outline: none;
-      border-color: #FF6B2C;
-    }
-
-    /* Timeline */
-    .timeline {
-      margin-top: 24px;
-      border-left: 2px solid #FF6B2C;
-      padding-left: 20px;
-    }
-    .timeline-item {
-      margin-bottom: 20px;
-      color: #E2E8F0;
-    }
-
-    /* Chat */
-    .chat-container {
-      max-height: 400px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .message {
-      padding: 12px 18px;
-      border-radius: 24px;
-      max-width: 80%;
-    }
-    .user-msg {
-      background: #FF6B2C;
-      color: white;
-      align-self: flex-end;
-    }
-    .bot-msg {
-      background: rgba(255,255,255,0.1);
-      color: #F1F5F9;
-      align-self: flex-start;
-    }
-
-    /* Imágenes elegantes (fotos que tú subirás) */
-    .elegant-image {
-      width: 100%;
-      border-radius: 24px;
-      object-fit: cover;
-      margin: 16px 0;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    }
-
-    /* Social embed (sin figuras) */
-    .social-embed {
-      background: #000;
-      border-radius: 24px;
-      overflow: hidden;
-      aspect-ratio: 9 / 16;
-      max-width: 320px;
-      margin: 0 auto;
-    }
-
-    /* Footer */
-    .footer {
-      text-align: center;
-      padding: 40px 0;
-      color: #94A3B8;
-      font-size: 0.8rem;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      margin-top: 40px;
-    }
-
-    /* WhatsApp flotante sin emoji */
-    .whatsapp-float {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #25D366;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 200;
-      font-weight: bold;
-      font-size: 0;
-    }
-    .whatsapp-float a {
-      color: white;
-      font-size: 0;
-      text-decoration: none;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    /* Se puede poner texto "WA" en lugar de ícono */
-    .whatsapp-float span {
-      font-size: 24px;
-      font-weight: bold;
-    }
-
-    @media (max-width: 640px) {
-      .hero h1 { font-size: 1.8rem; }
-      .btn { padding: 10px 20px; }
-    }
-  </style>
-</head>
-<body>
-
-<!-- Fondo animado (gradiente) -->
-<div class="animated-bg"></div>
-
-<!-- Opcional: tu loop de video (descomentar y poner la fuente) 
-<video class="video-loop" autoplay muted loop playsinline>
-  <source src="tu-loop.mp4" type="video/mp4">
-</video>
--->
-
-<div class="whatsapp-float">
-  <a href="https://wa.me/5355555555?text=Hola%20Chambatina%2C%20necesito%20ayuda" target="_blank">
-    <span>WA</span>
-  </a>
-</div>
-
-<header class="header">
-  <div class="container header-content">
-    <div class="logo">CHAMBATINA</div>
-    <button class="menu-btn" id="menuBtn">Menú</button>
-  </div>
-</header>
-
-<main class="container" id="app">
-  <!-- HOME -->
-  <section id="home">
-    <div class="hero">
-      <h1>Rastrea tu paquete, consulta con Chambita y descubre soluciones logísticas y energéticas.</h1>
-      <p>Logística confiable · Asesoría inteligente · Sistemas solares · Refiere y gana</p>
-      <div class="cta-group">
-        <a href="#" class="btn btn-primary" data-nav="track">Rastrear ahora</a>
-        <a href="#" class="btn btn-outline" data-nav="chat">Preguntar a Chambita</a>
-      </div>
-    </div>
-
-    <!-- Espacio para tus imágenes elegantes -->
-    <div class="grid-2">
-      <div class="card">
-        <h3>Seguimiento premium</h3>
-        <p>Actualizaciones claras, timeline visual y alertas humanas.</p>
-        <!-- Aquí puedes insertar una foto tuya -->
-        <img src="https://via.placeholder.com/400x200?text=Tu+foto+logística" alt="Logística" class="elegant-image" style="margin-top:16px;">
-      </div>
-      <div class="card">
-        <h3>Asistente IA</h3>
-        <p>Chambita responde sobre envíos, energía, precios y más.</p>
-        <img src="https://via.placeholder.com/400x200?text=Tu+foto+IA" alt="Asistente" class="elegant-image" style="margin-top:16px;">
-      </div>
-      <div class="card">
-        <h3>Energía que transforma</h3>
-        <p>Inversores, baterías y kits solares con asesoría real.</p>
-        <img src="https://via.placeholder.com/400x200?text=Tu+foto+solar" alt="Energía solar" class="elegant-image" style="margin-top:16px;">
-      </div>
-      <div class="card">
-        <h3>Refiere y gana</h3>
-        <p>Comparte, obtén comisiones y haz crecer la comunidad.</p>
-        <img src="https://via.placeholder.com/400x200?text=Tu+foto+referidos" alt="Referidos" class="elegant-image" style="margin-top:16px;">
-      </div>
-    </div>
-  </section>
-
-  <!-- RASTREADOR (sin palabra Cuba) -->
-  <section id="track" style="display:none;">
-    <div class="card">
-      <h2>Rastrear paquete</h2>
-      <div class="track-input">
-        <input type="text" id="cpkInput" placeholder="Código CPK (ej: CHB-123456)" autocomplete="off">
-        <button class="btn btn-primary" id="trackBtn">Rastrear</button>
-      </div>
-      <div id="trackResult"></div>
-    </div>
-  </section>
-
-  <!-- CHAT IA -->
-  <section id="chat" style="display:none;">
-    <div class="card">
-      <h2>Chambita — Tu asistente inteligente</h2>
-      <div class="chat-container" id="chatMessages">
-        <div class="message bot-msg">Bienvenido. Soy Chambita. Pregúntame sobre rastreo, logística, paneles solares o lo que necesites.</div>
-      </div>
-      <div class="track-input">
-        <input type="text" id="chatInput" placeholder="Escribe tu pregunta...">
-        <button class="btn btn-primary" id="sendChat">Enviar</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- SERVICIOS -->
-  <section id="servicios" style="display:none;">
-    <h2>Nuestros servicios</h2>
-    <div class="grid-2">
-      <div class="card">Logística internacional</div>
-      <div class="card">Seguimiento de paquetes</div>
-      <div class="card">Asesoría para compras</div>
-      <div class="card">Sistemas solares</div>
-      <div class="card">Equipos energéticos</div>
-      <div class="card">Consignación de equipos</div>
-    </div>
-  </section>
-
-  <!-- SOLAR / ENERGÍA -->
-  <section id="solar" style="display:none;">
-    <h2>Energía solar para tu hogar o negocio</h2>
-    <div class="grid-2">
-      <div class="card">
-        <strong>Inversor 3kW</strong><br>Ideal para casas pequeñas.<br><br>
-        <button class="btn btn-outline">Consultar</button>
-        <img src="https://via.placeholder.com/400x200?text=Foto+inversor" class="elegant-image">
-      </div>
-      <div class="card">
-        <strong>Batería Litio 5kWh</strong><br>Almacenamiento eficiente.<br><br>
-        <button class="btn btn-outline">Consultar</button>
-        <img src="https://via.placeholder.com/400x200?text=Foto+batería" class="elegant-image">
-      </div>
-      <div class="card">
-        <strong>Kit Solar Completo</strong><br>Paneles + inversor + instalación.<br><br>
-        <button class="btn btn-outline">Lo quiero</button>
-        <img src="https://via.placeholder.com/400x200?text=Foto+kit+solar" class="elegant-image">
-      </div>
-    </div>
-    <div class="card">
-      <h3>Educación solar</h3>
-      <p>¿Cuántos paneles necesito? ¿Qué batería me dura más? Chambita te guía.</p>
-      <img src="https://via.placeholder.com/800x300?text=Infografía+o+foto+educativa" class="elegant-image">
-    </div>
-  </section>
-
-  <!-- CONSIGNACIÓN -->
-  <section id="consignacion" style="display:none;">
-    <div class="card">
-      <h2>Deja tu equipo en consignación</h2>
-      <form id="consignForm">
-        <input type="text" placeholder="Tu nombre" id="owner" style="width:100%; margin-bottom:12px; padding:12px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2); border-radius:40px; color:white;">
-        <input type="text" placeholder="Equipo (ej: Inversor 5kW)" id="equipo" style="width:100%; margin-bottom:12px; padding:12px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2); border-radius:40px; color:white;">
-        <input type="number" placeholder="Precio USD" id="precio" style="width:100%; margin-bottom:12px; padding:12px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2); border-radius:40px; color:white;">
-        <button type="submit" class="btn btn-primary">Registrar para consignación</button>
-      </form>
-      <div id="consignList"></div>
-    </div>
-  </section>
-
-  <!-- REFERIDOS -->
-  <section id="referidos" style="display:none;">
-    <div class="card">
-      <h2>Gana con Chambatina — Referidos</h2>
-      <p>Comparte tu link único y recibe el 10% de comisión por cada venta referida.</p>
-      <button class="btn btn-primary" id="generarLink">Generar mi link de referido</button>
-      <div id="linkRef" style="margin-top:16px; font-weight:bold;"></div>
-    </div>
-  </section>
-
-  <!-- SOCIAL FEED -->
-  <section id="social" style="display:none;">
-    <h2>Síguenos en TikTok y Facebook</h2>
-    <div class="grid-2">
-      <div class="social-embed">
-        <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@chambatina/video/123456789" style="max-width:100%"> <a href="https://www.tiktok.com/@chambatina">@chambatina</a> </blockquote>
-      </div>
-      <div class="social-embed">
-        <iframe src="https://www.facebook.com/plugins/page.php?href=https://www.facebook.com/chambatina&tabs=timeline&width=340&height=500&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId" width="100%" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true"></iframe>
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer class="footer">
-  <div class="container">
-    <p>Chambatina — Logística inteligente + Energía que transforma</p>
-    <p>Seguridad y confianza garantizadas</p>
-  </div>
-</footer>
-
-<script>
-  // Navegación
-  const sections = ['home', 'track', 'chat', 'servicios', 'solar', 'consignacion', 'referidos', 'social'];
-  function showSection(id) {
-    sections.forEach(sec => {
-      const el = document.getElementById(sec);
-      if(el) el.style.display = sec === id ? 'block' : 'none';
+  try {
+    // 1. Obtener la página del formulario (para posibles tokens CSRF)
+    const baseUrl = 'https://www.solvedc.com/tracking/kanguro/';
+    const formRes = await axios.get(baseUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      timeout: 10000
     });
-  }
-  document.querySelectorAll('[data-nav]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const nav = btn.getAttribute('data-nav');
-      if(nav === 'track') showSection('track');
-      else if(nav === 'chat') showSection('chat');
-      else showSection('home');
+    const $ = cheerio.load(formRes.data);
+
+    // Buscar token CSRF (si existe)
+    let csrfToken = '';
+    const tokenSelectors = ['input[name="csrf_token"]', 'input[name="_token"]', 'input[name="authenticity_token"]'];
+    for (const sel of tokenSelectors) {
+      const val = $(sel).val();
+      if (val) { csrfToken = val; break; }
+    }
+
+    // Determinar URL de envío (action del formulario)
+    let actionUrl = baseUrl;
+    const formAction = $('form').attr('action');
+    if (formAction) actionUrl = formAction.startsWith('http') ? formAction : new URL(formAction, baseUrl).href;
+
+    // 2. Preparar datos del formulario
+    const formData = new URLSearchParams();
+    // ⚠️ CAMBIA EL NOMBRE DEL CAMPO si el sitio usa 'cedula' o 'identificacion'
+    formData.append('carnet', carnet);
+    if (csrfToken) formData.append('csrf_token', csrfToken);
+
+    // 3. Enviar petición POST
+    const consultaRes = await axios.post(actionUrl, formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': baseUrl
+      },
+      timeout: 15000
     });
-  });
-  document.getElementById('menuBtn')?.addEventListener('click', () => {
-    alert('Menú: Inicio · Rastrear · Chat · Servicios · Solar · Consignación · Referidos · Social');
-  });
 
-  // RASTREO (mock sin Cuba)
-  document.getElementById('trackBtn')?.addEventListener('click', async () => {
-    const cpk = document.getElementById('cpkInput').value;
-    const resultDiv = document.getElementById('trackResult');
-    if(!cpk) return resultDiv.innerHTML = '<div class="card" style="margin-top:16px;">Código CPK inválido.</div>';
-    resultDiv.innerHTML = '<div class="card">Buscando información...</div>';
-    await new Promise(r => setTimeout(r, 800));
-    const mockData = {
-      estado: 'En tránsito',
-      fecha: '2025-04-10',
-      descripcion: 'Paquete ingresado en centro de distribución',
-      timeline: ['Recibido en origen', 'En vuelo', 'En proceso aduanero', 'Próxima entrega']
-    };
-    resultDiv.innerHTML = `
-      <div class="card" style="margin-top:16px;">
-        <h3>Estado: ${mockData.estado}</h3>
-        <p>${mockData.fecha} · ${mockData.descripcion}</p>
-        <div class="timeline">${mockData.timeline.map(t => `<div class="timeline-item">${t}</div>`).join('')}</div>
-        <p>¿Dudas? <a href="#" data-nav="chat">Pregunta a Chambita</a></p>
-      </div>
-    `;
-    document.querySelectorAll('[data-nav="chat"]').forEach(ln => ln.addEventListener('click', (e) => { e.preventDefault(); showSection('chat'); }));
-  });
+    // 4. Parsear respuesta HTML
+    const $results = cheerio.load(consultaRes.data);
+    const paquetes = [];
 
-  // CHAT IA (conecta a /api/chat)
-  const chatMessages = document.getElementById('chatMessages');
-  const chatInput = document.getElementById('chatInput');
-  const sendChat = document.getElementById('sendChat');
-  async function sendMessage() {
-    const msg = chatInput.value.trim();
-    if(!msg) return;
-    chatMessages.innerHTML += `<div class="message user-msg">${msg}</div>`;
-    chatInput.value = '';
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg, cpkContext: null })
-      });
-      const data = await response.json();
-      chatMessages.innerHTML += `<div class="message bot-msg">${data.reply || 'Chambita: Te ayudaré con eso.'}</div>`;
-    } catch(e) {
-      chatMessages.innerHTML += `<div class="message bot-msg">Chambita: En este momento no puedo conectarme, contáctame por WhatsApp.</div>`;
+    // ⚠️ AQUÍ DEBES CAMBIAR LOS SELECTORES SEGÚN EL HTML REAL DE KANGURO
+    // Ejemplo genérico: busca contenedores con clase 'result-item' o 'tracking-card'
+    $results('.result-item, .tracking-card, .table tbody tr').each((i, elem) => {
+      const $elem = $results(elem);
+      const cpk = $elem.find('.guia, .tracking-number, td:first-child').text().trim();
+      const estado = $elem.find('.estado, .status, td:nth-child(2)').text().trim();
+      const fecha = $elem.find('.fecha, .date, td:nth-child(3)').text().trim();
+      const descripcion = $elem.find('.producto, .descripcion, td:nth-child(4)').text().trim();
+      const observaciones = $elem.find('.observaciones, .nota, td:nth-child(5)').text().trim();
+      if (cpk) {
+        paquetes.push({ cpk, estado, fecha, descripcion, observaciones, timeline: [estado] });
+      }
+    });
+
+    // Fallback: si no encuentra con los selectores, busca cualquier CPK en el texto
+    if (paquetes.length === 0) {
+      const bodyText = $results.body.text();
+      const cpkMatch = bodyText.match(/CPK-[A-Z0-9]+/);
+      if (cpkMatch) {
+        paquetes.push({
+          cpk: cpkMatch[0],
+          estado: 'Ver detalles en el sistema',
+          fecha: '',
+          descripcion: bodyText.substring(0, 200),
+          observaciones: '',
+          timeline: []
+        });
+      }
     }
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-  sendChat?.addEventListener('click', sendMessage);
-  chatInput?.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
 
-  // Consignación
-  const consignForm = document.getElementById('consignForm');
-  const consignList = document.getElementById('consignList');
-  let consignados = JSON.parse(localStorage.getItem('consignados') || '[]');
-  function mostrarConsignados() {
-    consignList.innerHTML = `<h4>Equipos en consignación</h4>` + consignados.map(c => `<div class="card">${c.equipo} - $${c.precio} (Dueño: ${c.owner})</div>`).join('');
-  }
-  consignForm?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const owner = document.getElementById('owner').value;
-    const equipo = document.getElementById('equipo').value;
-    const precio = document.getElementById('precio').value;
-    if(owner && equipo && precio) {
-      consignados.push({ owner, equipo, precio, estado: 'Disponible' });
-      localStorage.setItem('consignados', JSON.stringify(consignados));
-      mostrarConsignados();
-      consignForm.reset();
+    if (paquetes.length === 0) {
+      return res.status(404).json({ error: 'No se encontraron paquetes para ese carnet' });
     }
-  });
-  mostrarConsignados();
 
-  // Referidos
-  document.getElementById('generarLink')?.addEventListener('click', () => {
-    const userId = 'user_' + Math.random().toString(36).substr(2, 8);
-    const link = `https://chambatina.com/ref/${userId}`;
-    document.getElementById('linkRef').innerHTML = `${link} <br> <button class="btn btn-outline" onclick="navigator.clipboard.writeText('${link}')">Copiar link</button>`;
-  });
+    res.json(paquetes);
+  } catch (error) {
+    console.error('Error en proxy:', error.message);
+    res.status(500).json({ error: 'El servicio de rastreo externo no está disponible. Intenta más tarde.' });
+  }
+});
 
-  showSection('home');
-</script>
-</body>
-</html>
+// ==================== CHAT BÁSICO (opcional) ====================
+app.post('/api/chat', (req, res) => {
+  const { message } = req.body;
+  let reply = 'Hola, soy Chambita. Usa el rastreador con tu carnet o pregúntame sobre productos solares.';
+  if (message && message.toLowerCase().includes('precio')) {
+    reply = 'Contáctanos por WhatsApp para cotizaciones personalizadas.';
+  }
+  res.json({ reply });
+});
+
+// ==================== INICIAR SERVIDOR ====================
+app.listen(PORT, () => {
+  console.log(`✅ Chambatina server en http://localhost:${PORT}`);
+  console.log(`📦 Ejemplo: http://localhost:${PORT}/api/rastreo/carnet/12345678901`);
+});
