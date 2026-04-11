@@ -1,1 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ElderCare English | Caregiver + Accounting Exercises</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { font-family: 'Inter', system-ui, sans-serif; }
+    body { background: linear-gradient(135deg, #fef7e8 0%, #fff3e0 100%); min-height: 100vh; }
+    .option-btn { transition: all 0.2s; }
+    .option-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); }
+    @keyframes fadeSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .feedback-animation { animation: fadeSlide 0.3s ease forwards; }
+    .heart-pulse { animation: pulse 0.4s ease; }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+    .audio-btn { transition: all 0.15s; }
+    .audio-btn:hover { transform: scale(1.05); background-color: #fde68a; }
+    .playing { animation: pulse 0.6s ease; background-color: #fbbf24 !important; }
+    .short-input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.1); }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    // ========== EJERCICIOS ==========
+    const EXERCISES = [
+      // CUIDADO DE ADULTOS MAYORES
+      { type: "multiple", question: "How do you politely ask if an elderly person needs help walking?", options: ["Let me carry you", "Would you like me to help you walk?", "You need to walk now"], correct: 1, explanation: "Would you like me to help you walk? is respectful and kind." },
+      { type: "multiple", question: "What is the most calming phrase for an anxious senior?", options: ["Calm down", "Everything is okay. I am here with you.", "Stop worrying"], correct: 1, explanation: "Everything is okay. I am here with you provides security." },
+      { type: "truefalse", question: "You should speak loudly to elderly people so they can hear better.", correct: "false", explanation: "False! Speak clearly at normal volume." },
+      { type: "truefalse", question: "Ignore a senior who seems sad or withdrawn.", correct: "false", explanation: "False! Acknowledge their feelings and offer support." },
+      { type: "multiple", question: "How to ask if a senior wants company?", options: ["Do you want company?", "Would you like me to stay with you for a while?", "You need company"], correct: 1, explanation: "Would you like me to stay... is respectful." },
+      { type: "truefalse", question: "Gentle touch on the shoulder can be reassuring.", correct: "true", explanation: "Correct! Gentle touch provides comfort." },
+      { type: "multiple", question: "Kind way to say goodnight:", options: ["Go to sleep now", "Rest well. I will check on you later.", "Sleep early"], correct: 1, explanation: "Rest well shows care." },
+      { type: "multiple", question: "What does 'Let me accompany you' mean?", options: ["Let me carry you", "Let me walk with you", "Let me feed you"], correct: 1, explanation: "Accompany means to go with someone." },
+      { type: "truefalse", question: "Offering choices respects their autonomy.", correct: "true", explanation: "Correct! Choices empower seniors." },
+      { type: "multiple", question: "How to ask about pain in a gentle way?", options: ["Does it hurt?", "Are you in any pain?", "Pain?"], correct: 1, explanation: "Are you in any pain? is gentle." },
+      { type: "truefalse", question: "Maintain eye contact with elderly adults.", correct: "true", explanation: "Correct! Eye contact shows respect." },
+      { type: "multiple", question: "Best phrase to encourage eating:", options: ["Eat faster", "Would you like a few more bites?", "Finish everything"], correct: 1, explanation: "Would you like a few more bites? is gentle." },
+      { type: "short", question: "Gentle way to ask about pain?", correctKeywords: ["are you in any pain", "do you have pain", "does it hurt"], explanation: "Are you in any pain?" },
+      { type: "short", question: "How to reassure an anxious senior?", correctKeywords: ["i am here with you", "you are safe", "everything is okay"], explanation: "I am here with you. You are safe." },
+      { type: "short", question: "Phrase to offer help with walking?", correctKeywords: ["would you like me to help you walk", "let me help you walk", "take my arm"], explanation: "Would you like me to help you walk?" },
+      { type: "short", question: "How to offer something to drink?", correctKeywords: ["would you like some water", "something to drink", "can i get you water"], explanation: "Would you like some water or juice?" },
+      
+      // CONTABILIDAD
+      { type: "multiple", question: "What does 'credit' mean in accounting?", options: ["Money going out", "Money coming in", "A type of loan"], correct: 0, explanation: "A credit increases liability accounts." },
+      { type: "multiple", question: "What is a 'ledger'?", options: ["Calculator", "Book for transactions", "Bank statement"], correct: 1, explanation: "A ledger records transactions." },
+      { type: "multiple", question: "What does 'debit' mean?", options: ["Money going out", "Money coming in", "Credit card"], correct: 0, explanation: "A debit increases asset accounts." },
+      { type: "multiple", question: "What are 'accounts receivable'?", options: ["Money owed to suppliers", "Money owed by customers", "Cash in bank"], correct: 1, explanation: "Money customers owe." },
+      { type: "multiple", question: "What are 'accounts payable'?", options: ["Money owed by customers", "Money owed to suppliers", "Company profits"], correct: 1, explanation: "Money owed to suppliers." },
+      { type: "multiple", question: "What does 'net profit' mean?", options: ["Total revenue", "Revenue minus expenses", "Gross sales"], correct: 1, explanation: "Revenue minus all expenses." },
+      { type: "multiple", question: "What is 'depreciation'?", options: ["Increase in value", "Decrease in value over time", "Money in bank"], correct: 1, explanation: "Decrease in asset value over time." },
+      { type: "multiple", question: "What does 'APR' stand for?", options: ["Annual Payment Rate", "Annual Percentage Rate", "Account Payment Ratio"], correct: 1, explanation: "Annual Percentage Rate." },
+      { type: "multiple", question: "What is a 'balance sheet'?", options: ["Income report", "Assets, liabilities, equity", "Cash flow"], correct: 1, explanation: "Shows financial position." },
+      { type: "multiple", question: "What is 'equity'?", options: ["Money owed", "Owner's claim", "Total revenue"], correct: 1, explanation: "Owner's residual interest." },
+      { type: "truefalse", question: "Assets = Liabilities + Equity is the accounting equation.", correct: "true", explanation: "Correct! This must always balance." },
+      { type: "truefalse", question: "Depreciation increases asset value.", correct: "false", explanation: "False! Depreciation decreases value." },
+      { type: "truefalse", question: "Revenue is recorded when cash is received.", correct: "false", explanation: "False! Under accrual accounting, when earned." },
+      { type: "truefalse", question: "A trial balance ensures debits equal credits.", correct: "true", explanation: "Correct! It verifies balance." },
+      { type: "truefalse", question: "Gross profit is revenue minus cost of goods sold.", correct: "true", explanation: "Correct! Measures profitability." },
+      { type: "short", question: "Statement showing assets, liabilities, equity?", correctKeywords: ["balance sheet", "balance"], explanation: "Balance sheet" },
+      { type: "short", question: "Decrease in asset value over time?", correctKeywords: ["depreciation", "depreciate"], explanation: "Depreciation" },
+      { type: "short", question: "What does APR stand for?", correctKeywords: ["annual percentage rate", "apr"], explanation: "Annual Percentage Rate" },
+      { type: "short", question: "Money owed to suppliers?", correctKeywords: ["accounts payable", "payable"], explanation: "Accounts payable" }
+    ];
 
+    const TOTAL = EXERCISES.length;
+    const POINTS = 10;
+    let idx = 0, score = 0, lives = 5, answered = false, selected = null, fbMsg = null, fbType = null;
+    let scoreSpan, heartsSpan, progressFill, progressText, questionDiv, optionsDiv, nextBtn, feedbackDiv;
+    let voice = null, voiceReady = false;
+
+    function cleanText(t){ return t.replace(/[.,!?;:'"“”‘’()]/g,' ').replace(/\s+/g,' ').trim().toLowerCase(); }
+    
+    async function loadVoice(){
+      if(!window.speechSynthesis) return;
+      const check=()=>{
+        let v = speechSynthesis.getVoices().find(v=>v.lang==='en-US' && (v.name.includes('Google')||v.name.includes('Jenny')||v.name.includes('Samantha')));
+        if(!v) v = speechSynthesis.getVoices().find(v=>v.lang==='en-US');
+        if(v){ voice=v; voiceReady=true; }
+      };
+      if(speechSynthesis.getVoices().length) check();
+      else speechSynthesis.onvoiceschanged=check;
+    }
+    
+    async function speak(t,el){
+      if(!voiceReady) await loadVoice();
+      if(!voiceReady) return;
+      speechSynthesis.cancel();
+      let u=new SpeechSynthesisUtterance(cleanText(t));
+      u.lang='en-US'; u.voice=voice; u.rate=0.85;
+      if(el){ el.classList.add('playing'); u.onend=()=>el.classList.remove('playing'); }
+      speechSynthesis.speak(u);
+    }
+    
+    function updateUI(){
+      if(scoreSpan) scoreSpan.innerText=score;
+      if(progressText) progressText.innerText=Math.round(idx/TOTAL*100);
+      if(progressFill) progressFill.style.width=idx/TOTAL*100+'%';
+      if(heartsSpan){
+        heartsSpan.innerHTML='';
+        for(let i=0;i<5;i++) heartsSpan.innerHTML+=i<lives?'<i class="fas fa-heart text-red-500 text-2xl mx-0.5"></i>':'<i class="far fa-heart text-gray-400 text-2xl mx-0.5"></i>';
+      }
+    }
+    
+    function showFeedback(){
+      if(!feedbackDiv) return;
+      if(!fbMsg){ feedbackDiv.classList.add('hidden'); return; }
+      feedbackDiv.classList.remove('hidden');
+      feedbackDiv.className=`feedback-animation p-4 rounded-xl mt-6 ${fbType==='correct'?'bg-emerald-100 border-l-8 border-emerald-500 text-emerald-800':'bg-rose-100 border-l-8 border-rose-400 text-rose-800'}`;
+      feedbackDiv.innerHTML=`<p class="font-medium">${fbMsg}</p>`;
+    }
+    
+    function render(){
+      let ex=EXERCISES[idx];
+      if(!ex) return;
+      questionDiv.innerHTML=`<div class="text-2xl md:text-3xl font-bold text-stone-800">${ex.question}</div>`;
+      optionsDiv.innerHTML='';
+      
+      if(ex.type==='multiple'){
+        ex.options.forEach((opt,i)=>{
+          let btn=document.createElement('button');
+          btn.className=`option-btn w-full text-left p-5 rounded-2xl border-2 flex items-center gap-3 bg-white border-amber-200 ${!answered?'hover:shadow-md cursor-pointer':''}`;
+          if(answered){
+            if(i===ex.correct) btn.className+=' bg-emerald-50 border-emerald-400';
+            else if(i===selected && i!==ex.correct) btn.className+=' bg-rose-50 border-rose-300';
+            else btn.className+=' bg-white/70';
+          }
+          let p=document.createElement('span'); p.className='w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-medium text-sm'; p.innerText=String.fromCharCode(65+i);
+          let t=document.createElement('span'); t.className='text-stone-700 text-lg font-medium flex-1'; t.innerText=opt;
+          btn.appendChild(p); btn.appendChild(t);
+          let a=document.createElement('button'); a.className='audio-btn ml-2 p-2 rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 transition flex-shrink-0'; a.innerHTML='<i class="fas fa-volume-up"></i>';
+          a.onclick=async(e)=>{ e.stopPropagation(); await speak(opt,a); };
+          btn.appendChild(a);
+          if(answered && i===ex.correct){ let c=document.createElement('span'); c.className='text-emerald-600 text-xl ml-1'; c.innerHTML='✓'; btn.appendChild(c); }
+          else if(answered && i===selected && i!==ex.correct){ let x=document.createElement('span'); x.className='text-rose-500 text-xl ml-1'; x.innerHTML='✗'; btn.appendChild(x); }
+          if(!answered) btn.onclick=()=>{
+            if(answered)return;
+            let correct=(i===ex.correct); selected=i; answered=true;
+            if(correct){ score+=POINTS; fbType='correct'; fbMsg=`✅ Excellent! +${POINTS} points. ${ex.explanation}`; }
+            else{ if(lives>0)lives--; if(heartsSpan)heartsSpan.classList.add('heart-pulse'); setTimeout(()=>heartsSpan?.classList.remove('heart-pulse'),400); fbType='wrong'; fbMsg=`❌ Incorrect. ${ex.explanation}`; }
+            updateUI(); render(); showFeedback();
+            if(lives===0) setTimeout(()=>{ if(confirm("No hearts left. Restart?")) resetGame(); },150);
+          };
+          optionsDiv.appendChild(btn);
+        });
+      } else if(ex.type==='truefalse'){
+        let cont=document.createElement('div'); cont.className='grid grid-cols-2 gap-4';
+        let tBtn=document.createElement('button'); tBtn.className=`w-full p-5 rounded-2xl border-2 flex items-center justify-center gap-3 text-xl font-bold bg-white border-green-400 text-green-700 ${!answered?'hover:shadow-md cursor-pointer':''}`; tBtn.innerHTML='<i class="fas fa-check-circle mr-2"></i> TRUE';
+        let fBtn=document.createElement('button'); fBtn.className=`w-full p-5 rounded-2xl border-2 flex items-center justify-center gap-3 text-xl font-bold bg-white border-red-400 text-red-700 ${!answered?'hover:shadow-md cursor-pointer':''}`; fBtn.innerHTML='<i class="fas fa-times-circle mr-2"></i> FALSE';
+        if(answered){
+          if(ex.correct==='true') tBtn.className+=' bg-emerald-50 border-emerald-500'; else fBtn.className+=' bg-emerald-50 border-emerald-500';
+          if(selected==='true' && ex.correct!=='true') tBtn.className+=' bg-rose-50 border-rose-400';
+          if(selected==='false' && ex.correct!=='false') fBtn.className+=' bg-rose-50 border-rose-400';
+        }
+        if(!answered){
+          tBtn.onclick=()=>{ if(answered)return; let correct=(ex.correct==='true'); selected='true'; answered=true;
+            if(correct){ score+=POINTS; fbType='correct'; fbMsg=`✅ Excellent! +${POINTS} points. ${ex.explanation}`; }
+            else{ if(lives>0)lives--; if(heartsSpan)heartsSpan.classList.add('heart-pulse'); setTimeout(()=>heartsSpan?.classList.remove('heart-pulse'),400); fbType='wrong'; fbMsg=`❌ Incorrect. ${ex.explanation}`; }
+            updateUI(); render(); showFeedback(); if(lives===0) setTimeout(()=>{ if(confirm("No hearts left. Restart?")) resetGame(); },150);
+          };
+          fBtn.onclick=()=>{ if(answered)return; let correct=(ex.correct==='false'); selected='false'; answered=true;
+            if(correct){ score+=POINTS; fbType='correct'; fbMsg=`✅ Excellent! +${POINTS} points. ${ex.explanation}`; }
+            else{ if(lives>0)lives--; if(heartsSpan)heartsSpan.classList.add('heart-pulse'); setTimeout(()=>heartsSpan?.classList.remove('heart-pulse'),400); fbType='wrong'; fbMsg=`❌ Incorrect. ${ex.explanation}`; }
+            updateUI(); render(); showFeedback(); if(lives===0) setTimeout(()=>{ if(confirm("No hearts left. Restart?")) resetGame(); },150);
+          };
+        }
+        cont.appendChild(tBtn); cont.appendChild(fBtn); optionsDiv.appendChild(cont);
+      } else if(ex.type==='short'){
+        let group=document.createElement('div'); group.className='space-y-4';
+        let inp=document.createElement('input'); inp.type='text'; inp.id='shortInp'; inp.placeholder='Type your answer here...'; inp.className='w-full p-5 rounded-2xl border-2 border-amber-200 text-lg bg-white focus:outline-none focus:border-amber-500'; inp.disabled=answered;
+        if(answered && selected) inp.value=selected;
+        let sub=document.createElement('button'); sub.textContent='Submit Answer'; sub.className='w-full p-4 rounded-2xl font-bold text-white text-lg bg-amber-600 hover:bg-amber-700 transition'; sub.disabled=answered;
+        if(!answered) sub.onclick=()=>{
+          let ans=document.getElementById('shortInp').value.trim().toLowerCase();
+          let correct=ex.correctKeywords.some(k=>ans.includes(k));
+          answered=true; selected=ans;
+          if(correct){ score+=POINTS; fbType='correct'; fbMsg=`✅ Excellent! +${POINTS} points. ${ex.explanation}`; }
+          else{ if(lives>0)lives--; if(heartsSpan)heartsSpan.classList.add('heart-pulse'); setTimeout(()=>heartsSpan?.classList.remove('heart-pulse'),400); fbType='wrong'; fbMsg=`❌ Incorrect. ${ex.explanation}`; }
+          updateUI(); render(); showFeedback(); if(lives===0) setTimeout(()=>{ if(confirm("No hearts left. Restart?")) resetGame(); },150);
+        };
+        group.appendChild(inp); group.appendChild(sub); optionsDiv.appendChild(group);
+      }
+      
+      if(nextBtn){
+        if(answered){ nextBtn.disabled=false; nextBtn.classList.remove('bg-gray-300','cursor-not-allowed'); nextBtn.classList.add('bg-amber-700','hover:bg-amber-800','cursor-pointer'); }
+        else{ nextBtn.disabled=true; nextBtn.classList.add('bg-gray-300','cursor-not-allowed'); nextBtn.classList.remove('bg-amber-700','hover:bg-amber-800'); }
+      }
+      
+      let badge=document.getElementById('typeBadge');
+      if(badge){
+        let txt='',col='';
+        if(ex.type==='multiple'){ txt='MULTIPLE CHOICE'; col='bg-purple-100 text-purple-700'; }
+        else if(ex.type==='truefalse'){ txt='TRUE / FALSE'; col='bg-green-100 text-green-700'; }
+        else{ txt='SHORT ANSWER'; col='bg-orange-100 text-orange-700'; }
+        badge.innerText=txt; badge.className=`inline-block px-3 py-1 rounded-full text-xs font-semibold ${col}`;
+      }
+    }
+    
+    function next(){
+      if(!answered) return;
+      if(lives===0){ if(confirm("No hearts left. Restart?")) resetGame(); return; }
+      if(idx+1<TOTAL){ idx++; answered=false; selected=null; fbMsg=null; fbType=null; if(feedbackDiv)feedbackDiv.classList.add('hidden'); render(); updateUI(); }
+      else{
+        answered=true;
+        fbMsg=`🎉 CONGRATULATIONS! You completed all ${TOTAL} exercises! Score: ${score} / ${TOTAL*POINTS}`;
+        fbType='complete';
+        showFeedback();
+        if(nextBtn) nextBtn.disabled=true;
+        if(optionsDiv) optionsDiv.innerHTML=`<div class="text-center p-8 bg-amber-50 rounded-2xl"><i class="fas fa-trophy text-6xl text-amber-500 mb-3"></i><p class="text-xl font-bold">✨ Complete! ✨</p><button id="resetBtn" class="mt-6 bg-amber-700 text-white px-6 py-3 rounded-xl font-bold">Restart</button></div>`;
+        document.getElementById('resetBtn')?.addEventListener('click',()=>resetGame());
+      }
+    }
+    
+    function resetGame(){ idx=0; score=0; lives=5; answered=false; selected=null; fbMsg=null; fbType=null; if(feedbackDiv)feedbackDiv.classList.add('hidden'); updateUI(); render(); }
+    
+    function build(){
+      document.getElementById('app').innerHTML=`
+        <div class="max-w-3xl mx-auto px-4 py-8">
+          <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-stone-800">👵🏽📊 Care & <span class="text-amber-600">Accounting English</span></h1>
+            <p class="text-stone-600 mt-2">${TOTAL} exercises: Multiple Choice, True/False, Short Answer with American English audio</p>
+          </div>
+          <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8">
+            <div class="flex justify-between items-center mb-6 pb-3 border-b border-amber-200">
+              <div class="flex items-center gap-4">
+                <div class="bg-amber-100 rounded-2xl px-4 py-2"><i class="fas fa-trophy text-amber-600"></i> <span class="font-bold ml-1">Score</span> <span id="scr" class="text-2xl font-black ml-2">0</span></div>
+                <div id="harts" class="flex gap-1"></div>
+              </div>
+              <div class="flex-1 max-w-xs ml-4">
+                <div class="flex justify-between text-sm"><span>Progress</span><span id="prog">0</span>%</div>
+                <div class="h-2 bg-amber-100 rounded-full"><div id="progFill" class="h-full bg-amber-600 rounded-full transition-all" style="width:0%"></div></div>
+              </div>
+            </div>
+            <div class="mb-4 inline-block px-3 py-1 rounded-full text-xs font-semibold" id="typeBadge"></div>
+            <div id="q" class="mb-6 text-2xl font-bold text-stone-800"></div>
+            <div id="opts" class="space-y-3"></div>
+            <div id="fb" class="hidden"></div>
+            <div class="mt-8 flex justify-end"><button id="next" class="px-8 py-3 rounded-xl font-bold text-white text-lg bg-gray-300 cursor-not-allowed" disabled>Next →</button></div>
+          </div>
+          <div class="mt-6 text-center text-stone-500 text-sm">🔊 Click the audio icon to hear American English pronunciation</div>
+        </div>
+      `;
+      scoreSpan=document.getElementById('scr'); heartsSpan=document.getElementById('harts'); progressFill=document.getElementById('progFill'); progressText=document.getElementById('prog'); questionDiv=document.getElementById('q'); optionsDiv=document.getElementById('opts'); nextBtn=document.getElementById('next'); feedbackDiv=document.getElementById('fb');
+      if(nextBtn) nextBtn.onclick=next;
+      render(); updateUI();
+    }
+    
+    // ¡ESTA ES LA LÍNEA QUE FALTABA!
+    build();
+    loadVoice();
+  </script>
+</body>
+</html>
