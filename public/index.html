@@ -1,1 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Chambatina | Rastrea tu paquete por carnet</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0A2B4E 0%, #1A2F3F 100%);
+      color: #E2E8F0;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Tarjeta principal */
+    .card {
+      background: rgba(20, 30, 45, 0.85);
+      backdrop-filter: blur(10px);
+      border-radius: 32px;
+      padding: 32px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 20px 35px -10px rgba(0,0,0,0.3);
+    }
+
+    /* Imagen de Chambatina (elegante) */
+    .banner-img {
+      width: 100%;
+      border-radius: 24px;
+      margin-bottom: 24px;
+      object-fit: cover;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      text-align: center;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #FFB347, #FF6B2C);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitulo {
+      text-align: center;
+      margin-bottom: 32px;
+      color: #CBD5E1;
+    }
+
+    /* Campo de entrada */
+    .input-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .input-group input {
+      flex: 1;
+      padding: 16px 20px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 60px;
+      color: white;
+      font-size: 1rem;
+      outline: none;
+      transition: 0.2s;
+    }
+    .input-group input:focus {
+      border-color: #FF6B2C;
+    }
+    .btn {
+      padding: 16px 32px;
+      background: #FF6B2C;
+      border: none;
+      border-radius: 60px;
+      color: white;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn:hover {
+      background: #E55A1E;
+      transform: scale(1.02);
+    }
+
+    /* Resultados */
+    .paquete {
+      background: rgba(0,0,0,0.3);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border-left: 4px solid #FF6B2C;
+    }
+    .paquete strong {
+      color: #FFB347;
+    }
+    .timeline {
+      margin-top: 12px;
+      padding-left: 16px;
+      border-left: 2px solid #FF6B2C;
+    }
+    .timeline-item {
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+    .error {
+      background: rgba(220, 38, 38, 0.2);
+      border-left-color: #DC2626;
+      padding: 16px;
+      border-radius: 16px;
+    }
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.8rem;
+      color: #94A3B8;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <!-- ⚡ AQUÍ ESTÁ LA IMAGEN DE CHAMBATINA (cambia la URL por tu foto real) -->
+    <img class="banner-img" src="https://via.placeholder.com/800x200/0A2B4E/FF6B2C?text=CHAMBATINA+TRACKING" alt="Chambatina">
+    
+    <h1>Rastrea tus paquetes</h1>
+    <div class="subtitulo">Ingresa tu número de carnet de identidad</div>
+
+    <div class="input-group">
+      <input type="text" id="carnetInput" placeholder="Ej: 68100403152" autocomplete="off">
+      <button class="btn" id="buscarBtn">Buscar mis paquetes</button>
+    </div>
+
+    <div id="resultados"></div>
+  </div>
+  <footer>
+    Chambatina — Logística confiable · Energía que transforma
+  </footer>
+</div>
+
+<script>
+  const buscarBtn = document.getElementById('buscarBtn');
+  const carnetInput = document.getElementById('carnetInput');
+  const resultadosDiv = document.getElementById('resultados');
+
+  buscarBtn.addEventListener('click', async () => {
+    const carnet = carnetInput.value.trim();
+    if (!carnet) {
+      resultadosDiv.innerHTML = '<div class="error">❌ Por favor, ingresa tu número de carnet</div>';
+      return;
+    }
+
+    resultadosDiv.innerHTML = '<div class="paquete">🔍 Buscando tus paquetes...</div>';
+
+    try {
+      const response = await fetch(`/api/rastreo/carnet/${encodeURIComponent(carnet)}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'No se encontraron paquetes');
+      }
+
+      if (data.length === 0) {
+        resultadosDiv.innerHTML = '<div class="error">📭 No hay paquetes asociados a este carnet</div>';
+        return;
+      }
+
+      let html = '';
+      data.forEach(pkg => {
+        html += `
+          <div class="paquete">
+            <strong>📦 Código:</strong> ${pkg.cpk}<br>
+            <strong>📍 Estado:</strong> ${pkg.estado}<br>
+            <strong>📅 Fecha:</strong> ${pkg.fecha || '—'}<br>
+            <strong>📝 Descripción:</strong> ${pkg.descripcion || '—'}<br>
+            ${pkg.observaciones ? `<strong>📌 Observaciones:</strong> ${pkg.observaciones}<br>` : ''}
+            <div class="timeline">
+              ${pkg.timeline && pkg.timeline.length ? pkg.timeline.map(t => `<div class="timeline-item">• ${t}</div>`).join('') : '<div class="timeline-item">• Sin historial detallado</div>'}
+            </div>
+          </div>
+        `;
+      });
+      resultadosDiv.innerHTML = html;
+    } catch (error) {
+      resultadosDiv.innerHTML = `<div class="error">⚠️ ${error.message}</div>`;
+    }
+  });
+</script>
+</body>
+</html>
