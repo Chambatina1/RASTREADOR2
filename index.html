@@ -1,4 +1,6 @@
-// index.js - Servidor Chambatina (proxy para rastreo por carnet)
+// index.js - Servidor Chambatina
+// Este archivo va en la raíz de tu proyecto, junto a la carpeta /public
+
 const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
@@ -9,10 +11,10 @@ const PORT = process.env.PORT || 3000;
 
 // Middlewares
 app.use(express.json());
-app.use(express.static('public')); // Aquí va tu frontend (HTML, CSS, imágenes)
+app.use(express.static('public'));   // Aquí sirve tu index.html, imágenes, etc.
 
-// ==================== RASTREO POR CARNET ====================
-// Endpoint que usa el frontend de Chambatina
+// ==================== ENDPOINT PRINCIPAL: RASTREO POR CARNET ====================
+// El frontend llama a: /api/rastreo/carnet/12345678901
 app.get('/api/rastreo/carnet/:carnet', async (req, res) => {
   const carnet = req.params.carnet.trim();
   if (!carnet) {
@@ -20,34 +22,49 @@ app.get('/api/rastreo/carnet/:carnet', async (req, res) => {
   }
 
   try {
-    // 1. Obtener la página del formulario (para posibles tokens CSRF)
+    // 1. Obtener la página del formulario de Kanguro (para posibles tokens)
     const baseUrl = 'https://www.solvedc.com/tracking/kanguro/';
     const formRes = await axios.get(baseUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      },
       timeout: 10000
     });
-    const $ = cheerio.load(formRes.data);
 
+    const $ = cheerio.load(formRes.data);
+    
     // Buscar token CSRF (si existe)
     let csrfToken = '';
-    const tokenSelectors = ['input[name="csrf_token"]', 'input[name="_token"]', 'input[name="authenticity_token"]'];
-    for (const sel of tokenSelectors) {
-      const val = $(sel).val();
-      if (val) { csrfToken = val; break; }
+    const tokenSelectors = [
+      'input[name="csrf_token"]',
+      'input[name="_token"]',
+      'input[name="authenticity_token"]'
+    ];
+    for (const selector of tokenSelectors) {
+      const token = $(selector).val();
+      if (token) {
+        csrfToken = token;
+        break;
+      }
     }
 
-    // Determinar URL de envío (action del formulario)
+    // Obtener la URL de envío (action del formulario)
     let actionUrl = baseUrl;
     const formAction = $('form').attr('action');
-    if (formAction) actionUrl = formAction.startsWith('http') ? formAction : new URL(formAction, baseUrl).href;
+    if (formAction) {
+      actionUrl = formAction.startsWith('http')
+        ? formAction
+        : new URL(formAction, baseUrl).href;
+    }
 
-    // 2. Preparar datos del formulario
+    // 2. Preparar los datos del formulario
     const formData = new URLSearchParams();
-    // ⚠️ CAMBIA EL NOMBRE DEL CAMPO si el sitio usa 'cedula' o 'identificacion'
+    // IMPORTANTE: El sitio puede esperar 'carnet', 'cedula' o 'identificacion'.
+    // Si no funciona, prueba cambiando el nombre del campo.
     formData.append('carnet', carnet);
     if (csrfToken) formData.append('csrf_token', csrfToken);
 
-    // 3. Enviar petición POST
+    // 3. Enviar la petición POST con el carnet
     const consultaRes = await axios.post(actionUrl, formData, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -57,25 +74,34 @@ app.get('/api/rastreo/carnet/:carnet', async (req, res) => {
       timeout: 15000
     });
 
-    // 4. Parsear respuesta HTML
+    // 4. Parsear el HTML de la respuesta
     const $results = cheerio.load(consultaRes.data);
     const paquetes = [];
 
-    // ⚠️ AQUÍ DEBES CAMBIAR LOS SELECTORES SEGÚN EL HTML REAL DE KANGURO
-    // Ejemplo genérico: busca contenedores con clase 'result-item' o 'tracking-card'
-    $results('.result-item, .tracking-card, .table tbody tr').each((i, elem) => {
+    // --- AQUÍ DEBES AJUSTAR LOS SELECTORES SEGÚN EL HTML REAL DE KANGURO ---
+    // Inspecciona la página con F12 y reemplaza estas clases por las reales.
+    // Por ahora usamos selectores genéricos que capturan tablas o tarjetas comunes.
+    $results('.result-item, .tracking-card, .table tbody tr, .tracking-result').each((i, elem) => {
       const $elem = $results(elem);
-      const cpk = $elem.find('.guia, .tracking-number, td:first-child').text().trim();
+      const cpk = $elem.find('.guia, .tracking-number, .codigo, td:first-child').text().trim();
       const estado = $elem.find('.estado, .status, td:nth-child(2)').text().trim();
       const fecha = $elem.find('.fecha, .date, td:nth-child(3)').text().trim();
       const descripcion = $elem.find('.producto, .descripcion, td:nth-child(4)').text().trim();
       const observaciones = $elem.find('.observaciones, .nota, td:nth-child(5)').text().trim();
+      
       if (cpk) {
-        paquetes.push({ cpk, estado, fecha, descripcion, observaciones, timeline: [estado] });
+        paquetes.push({
+          cpk,
+          estado,
+          fecha,
+          descripcion,
+          observaciones,
+          timeline: [estado]  // Podrías extraer más historial si existe
+        });
       }
     });
 
-    // Fallback: si no encuentra con los selectores, busca cualquier CPK en el texto
+    // Fallback: si no se encontró con los selectores, buscar cualquier CPK en el texto
     if (paquetes.length === 0) {
       const bodyText = $results.body.text();
       const cpkMatch = bodyText.match(/CPK-[A-Z0-9]+/);
@@ -84,7 +110,7 @@ app.get('/api/rastreo/carnet/:carnet', async (req, res) => {
           cpk: cpkMatch[0],
           estado: 'Ver detalles en el sistema',
           fecha: '',
-          descripcion: bodyText.substring(0, 200),
+          descripcion: bodyText.substring(0, 200).replace(/\s+/g, ' '),
           observaciones: '',
           timeline: []
         });
@@ -95,25 +121,28 @@ app.get('/api/rastreo/carnet/:carnet', async (req, res) => {
       return res.status(404).json({ error: 'No se encontraron paquetes para ese carnet' });
     }
 
+    // 5. Devolver los datos al frontend de Chambatina
     res.json(paquetes);
   } catch (error) {
     console.error('Error en proxy:', error.message);
-    res.status(500).json({ error: 'El servicio de rastreo externo no está disponible. Intenta más tarde.' });
+    res.status(500).json({ error: 'El servicio de rastreo no está disponible. Intenta más tarde.' });
   }
 });
 
-// ==================== CHAT BÁSICO (opcional) ====================
+// ==================== ENDPOINT DE CHAT (BÁSICO) ====================
 app.post('/api/chat', (req, res) => {
   const { message } = req.body;
-  let reply = 'Hola, soy Chambita. Usa el rastreador con tu carnet o pregúntame sobre productos solares.';
+  let reply = 'Hola, soy Chambita. Puedo ayudarte con el rastreo (usa tu carnet) o con información sobre productos solares.';
   if (message && message.toLowerCase().includes('precio')) {
-    reply = 'Contáctanos por WhatsApp para cotizaciones personalizadas.';
+    reply = 'Para precios personalizados, escríbenos por WhatsApp.';
+  } else if (message && message.toLowerCase().includes('solar')) {
+    reply = 'Ofrecemos kits solares, inversores y baterías. ¿Necesitas asesoría? Contáctanos.';
   }
   res.json({ reply });
 });
 
 // ==================== INICIAR SERVIDOR ====================
 app.listen(PORT, () => {
-  console.log(`✅ Chambatina server en http://localhost:${PORT}`);
-  console.log(`📦 Ejemplo: http://localhost:${PORT}/api/rastreo/carnet/12345678901`);
+  console.log(`✅ Servidor Chambatina corriendo en http://localhost:${PORT}`);
+  console.log(`📦 Ejemplo de consulta: http://localhost:${PORT}/api/rastreo/carnet/12345678901`);
 });
