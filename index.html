@@ -2,707 +2,822 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Chambatina · Asistente elegante</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chambatina</title>
 
-  <!-- Manifest e íconos para PWA (rutas originales) -->
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#d4a373" />
+  <meta name="theme-color" content="#0f172a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Chambatina" />
-  <link rel="apple-touch-icon" href="public/chambatinaapp.png" />
+  <link rel="apple-touch-icon" href="public/Cahmabtinaapp.png" />
 
-  <!-- Fuentes sofisticadas: Inter + serif ligero para detalles -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
-  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <style>
-    * {
+    :root {
+      --bg-1: #07111f;
+      --bg-2: #0f172a;
+      --bg-3: #172554;
+      --glass: rgba(255, 255, 255, 0.12);
+      --glass-strong: rgba(255, 255, 255, 0.16);
+      --line: rgba(255, 255, 255, 0.14);
+      --text: #f8fafc;
+      --muted: rgba(248, 250, 252, 0.72);
+      --accent: #f59e0b;
+      --accent-2: #fbbf24;
+      --panel: rgba(255, 255, 255, 0.08);
+      --panel-soft: rgba(255, 255, 255, 0.06);
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
       margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-      background: #2c2b2a;  /* fallback */
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      /* 🌸 IMAGEN DE FONDO: textura abstracta y elegante (imagen real SVG) + gradiente suave */
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 1200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23fdfbf7'/%3E%3Cstop offset='100%25' stop-color='%23f0ebe1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23a)'/%3E%3Cpath fill='%23e8dfd1' fill-opacity='0.5' d='M0 0 L1200 800 L1200 1200 L0 1200 Z'/%3E%3Ccircle cx='200' cy='150' r='180' fill='%23f5ede3' fill-opacity='0.6'/%3E%3Ccircle cx='950' cy='850' r='240' fill='%23e9dfce' fill-opacity='0.5'/%3E%3Cpath d='M-50 400 Q 200 200 500 450 T 1050 400' stroke='%23dccfba' fill='none' stroke-width='1.2' stroke-opacity='0.5'/%3E%3C/svg%3E"), 
-      linear-gradient(145deg, #fefaf5 0%, #f6efe7 100%);
-      background-repeat: no-repeat, no-repeat;
-      background-size: cover, auto;
-      background-position: center center;
+      min-height: 100%;
+      font-family: 'Inter', Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(251,191,36,0.18), transparent 22%),
+        radial-gradient(circle at 85% 15%, rgba(59,130,246,0.18), transparent 22%),
+        radial-gradient(circle at 50% 100%, rgba(168,85,247,0.12), transparent 28%),
+        linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 48%, var(--bg-3) 100%);
       background-attachment: fixed;
-      backdrop-filter: blur(0px);
     }
 
-    /* Overlay sutil para profundidad y mejor lectura */
     body::before {
       content: "";
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at 20% 30%, rgba(255,245,235,0.25) 0%, rgba(0,0,0,0.02) 80%);
+      inset: 0;
+      background:
+        linear-gradient(rgba(255,255,255,0.02), rgba(255,255,255,0.02)),
+        url("https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1800&q=80") center/cover no-repeat;
+      opacity: 0.16;
+      filter: saturate(0.9) blur(1px);
       pointer-events: none;
-      z-index: 0;
+      transform: scale(1.03);
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(3,7,18,0.26), rgba(3,7,18,0.56));
+      pointer-events: none;
     }
 
     .wrap {
-      max-width: 860px;
-      width: 100%;
-      margin: 2rem auto;
-      padding: 1rem 1.5rem 2rem;
       position: relative;
-      z-index: 2;
+      z-index: 1;
+      width: min(100%, 880px);
+      margin: 0 auto;
+      padding: 34px 16px 56px;
     }
 
-    /* Tarjeta principal: vidrio elegante (glassmorphism ligero) pero con base sólida */
-    .card {
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(2px);
-      border-radius: 3rem;
-      box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0,0,0,0.02);
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      overflow: hidden;
-    }
-
-    .card:hover {
-      box-shadow: 0 30px 50px -18px rgba(0, 0, 0, 0.3);
-    }
-
-    /* Header con avatar y título refinado */
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1.6rem 2rem;
-      background: rgba(255, 255, 255, 0.75);
-      border-bottom: 1px solid rgba(224, 210, 190, 0.5);
-    }
-
-    .avatar {
-      width: 70px;
-      height: 70px;
-      background: #fef7ed;
-      border-radius: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255,255,255,0.8);
-      border: 1px solid #f2e3d4;
-    }
-
-    .avatar img {
-      width: 44px;
-      height: 44px;
-      object-fit: contain;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
-    }
-
-    .header-text h2 {
-      font-size: 1.9rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #b97f44, #d9a066);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-      margin-bottom: 0.2rem;
-    }
-
-    .header-text p {
-      font-size: 0.95rem;
-      color: #7c6b5a;
-      font-weight: 450;
-      letter-spacing: 0.3px;
-    }
-
-    /* Logo superior + título */
     .top {
       text-align: center;
-      margin-bottom: 2rem;
+      margin-bottom: 22px;
     }
 
     .logo-shell {
-      width: 110px;
-      height: 110px;
-      margin: 0 auto 1rem;
-      background: rgba(255, 250, 242, 0.85);
-      backdrop-filter: blur(4px);
-      border-radius: 36px;
+      width: 132px;
+      height: 132px;
+      margin: 0 auto 18px;
+      border-radius: 34px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.16);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255,255,255,0.7);
-      border: 1px solid rgba(255,240,220,0.8);
-      transition: all 0.2s;
+      box-shadow: var(--shadow);
     }
 
     .logo-shell img {
-      width: 68px;
-      height: 68px;
+      width: 80px;
+      height: 80px;
       object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 12px 16px rgba(0,0,0,0.18));
     }
 
     h1 {
-      font-size: 3rem;
+      margin: 0;
+      font-size: 46px;
       font-weight: 800;
-      background: linear-gradient(125deg, #c2823a, #e7b068);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.2rem;
-      text-shadow: 0 2px 5px rgba(0,0,0,0.02);
+      letter-spacing: -0.04em;
+      color: #fff;
+      text-shadow: 0 10px 30px rgba(0,0,0,0.24);
     }
 
     .subtitle {
-      font-size: 1rem;
-      font-weight: 450;
-      color: #5e4e3c;
-      background: rgba(245, 235, 220, 0.5);
-      display: inline-block;
-      padding: 0.2rem 1rem;
-      border-radius: 40px;
-      backdrop-filter: blur(4px);
+      margin: 10px auto 0;
+      max-width: 560px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.55;
     }
 
-    /* cuerpo del chat */
+    .card {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.05));
+      border: 1px solid rgba(255,255,255,0.16);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(22px);
+      box-shadow: var(--shadow);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(245,158,11,0.12), transparent 38%, rgba(255,255,255,0.03));
+      pointer-events: none;
+    }
+
+    .card-header {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 22px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .avatar {
+      width: 66px;
+      height: 66px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.14);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+    }
+
+    .avatar img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .header-text h2 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    .header-text p {
+      margin: 6px 0 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
     .card-body {
-      padding: 1.8rem 2rem 2rem;
+      position: relative;
+      padding: 24px;
+      background: rgba(8, 15, 30, 0.10);
+    }
+
+    .question-wrap {
+      position: relative;
+      margin-bottom: 16px;
     }
 
     .question-box {
       width: 100%;
-      background: #ffffff;
-      border: 1.5px solid #f0e2d4;
-      border-radius: 28px;
-      padding: 0 1.4rem;
       height: 64px;
-      font-size: 1rem;
-      font-weight: 500;
-      color: #2e241f;
-      transition: all 0.2s ease;
-      font-family: 'Inter', monospace;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border-radius: 20px;
+      padding: 0 18px;
+      font-size: 17px;
+      outline: none;
+      display: block;
+      transition: 0.22s ease;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .question-box::placeholder {
+      color: rgba(255,255,255,0.58);
     }
 
     .question-box:focus {
-      border-color: #e2b27c;
-      outline: none;
-      box-shadow: 0 0 0 4px rgba(219, 157, 88, 0.15);
-      background: #fffefb;
+      border-color: rgba(251,191,36,0.75);
+      background: rgba(255,255,255,0.14);
+      box-shadow: 0 0 0 4px rgba(245,158,11,0.12);
     }
 
     .answer-box {
-      background: #ffffffea;
-      border: 1px solid #f2e6db;
-      border-radius: 28px;
-      padding: 1.6rem;
       min-height: 260px;
-      font-size: 0.98rem;
-      line-height: 1.55;
-      color: #31261f;
-      transition: all 0.2s;
-      box-shadow: inset 0 1px 4px rgba(0,0,0,0.02), 0 2px 6px rgba(0,0,0,0.02);
-      overflow-y: auto;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 22px;
+      padding: 22px;
+      font-size: 16px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: rgba(255,255,255,0.95);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
     }
 
     .answer-box.is-loading {
-      background: #fefaf5;
-      color: #ab8b6b;
-      font-style: italic;
-      position: relative;
+      color: rgba(255,255,255,0.68);
     }
 
     .btn {
       width: 100%;
-      margin-top: 1.2rem;
-      background: linear-gradient(105deg, #e7b068, #cf8f4a);
-      border: none;
+      margin-top: 16px;
       height: 58px;
-      border-radius: 44px;
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: #2c241e;
+      border: none;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #111827;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
       cursor: pointer;
-      transition: 0.2s;
-      box-shadow: 0 8px 18px rgba(197, 123, 45, 0.2);
-      letter-spacing: 0.3px;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+      box-shadow: 0 16px 28px rgba(245,158,11,0.28);
     }
 
     .btn:hover {
-      transform: translateY(-2px);
-      filter: brightness(1.02);
-      box-shadow: 0 12px 24px rgba(177, 108, 33, 0.25);
+      transform: translateY(-1px);
+      box-shadow: 0 18px 34px rgba(245,158,11,0.34);
     }
 
-    .btn:disabled {
-      opacity: 0.65;
-      transform: none;
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled,
+    .question-box:disabled {
+      opacity: 0.72;
       cursor: not-allowed;
     }
 
-    /* chips elegantes */
     .helper-row {
       display: flex;
+      gap: 10px;
       flex-wrap: wrap;
-      gap: 0.6rem;
-      margin-top: 1.4rem;
+      margin-top: 14px;
     }
 
     .chip {
-      background: #fef9f2;
-      border: 1px solid #eedfcb;
-      border-radius: 40px;
-      padding: 0.5rem 1rem;
-      font-size: 0.8rem;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.92);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 13px;
       font-weight: 500;
-      color: #5d4a36;
       cursor: pointer;
-      transition: all 0.2s;
-      backdrop-filter: blur(2px);
+      transition: 0.18s ease;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .chip:hover {
-      background: #ffffff;
-      border-color: #d6b27c;
-      color: #a76f37;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border-color: rgba(251,191,36,0.6);
+      background: rgba(255,255,255,0.12);
       transform: translateY(-1px);
     }
 
-    /* badges y tarjetas de respuesta (mejoradas) */
     .status-badge {
-      display: inline-block;
-      background: #fff1e4;
-      padding: 0.45rem 1rem;
-      border-radius: 80px;
-      font-weight: 600;
-      font-size: 0.8rem;
-      border-left: 3px solid #e6b064;
-      margin-bottom: 1rem;
-      color: #8b5a2e;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      background: rgba(245,158,11,0.16);
+      color: #fde68a;
+      border: 1px solid rgba(251,191,36,0.32);
     }
 
     .tarjetas-carnet {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin-top: 0.5rem;
+      display: grid;
+      gap: 14px;
+      margin-top: 4px;
     }
 
     .tarjeta-carnet {
-      background: #fefcf9;
-      border-radius: 24px;
-      border: 1px solid #f0e0d0;
-      padding: 1rem 1.2rem;
-      transition: all 0.15s;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .tarjeta-carnet__fila {
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-      word-break: break-word;
+      margin-bottom: 9px;
+      color: rgba(255,255,255,0.92);
+      white-space: normal;
     }
 
-    .tarjeta-carnet__fila strong {
-      color: #b2722a;
-      font-weight: 600;
+    .tarjeta-carnet__fila:last-child {
+      margin-bottom: 0;
+    }
+
+    .respuesta-vacia,
+    .ios-tip {
+      padding: 14px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .respuesta-vacia {
-      padding: 1.2rem;
-      background: #fff3e8;
-      border-radius: 24px;
-      color: #b0622a;
-      border: 1px solid #f2d9c2;
-      text-align: center;
+      background: rgba(251,191,36,0.12);
+      color: #fde68a;
+      border: 1px solid rgba(251,191,36,0.26);
     }
 
     .ios-tip {
       display: none;
-      margin-top: 1rem;
-      background: #fff7e8;
-      border-radius: 28px;
-      padding: 0.9rem 1rem;
-      font-size: 0.75rem;
-      color: #b5651e;
-      text-align: center;
-      border: 1px solid #f7e1c6;
+      margin-top: 14px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.86);
     }
 
-    /* scroll elegante */
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #f0e6dc;
-      border-radius: 12px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #cfaa7a;
-      border-radius: 12px;
+    .footer-note {
+      margin-top: 18px;
+      text-align: center;
+      color: rgba(255,255,255,0.56);
+      font-size: 12px;
     }
 
     @media (max-width: 700px) {
       .wrap {
-        padding: 0.8rem 1rem 1.5rem;
-        margin: 1rem auto;
+        padding: 18px 10px 34px;
       }
+
+      .logo-shell {
+        width: 110px;
+        height: 110px;
+        border-radius: 28px;
+      }
+
+      .logo-shell img {
+        width: 66px;
+        height: 66px;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      .subtitle {
+        font-size: 15px;
+        max-width: 320px;
+      }
+
+      .card {
+        border-radius: 24px;
+      }
+
       .card-header {
-        padding: 1rem 1.4rem;
+        padding: 16px;
       }
+
       .avatar {
         width: 56px;
         height: 56px;
-        border-radius: 22px;
+        border-radius: 16px;
       }
-      .avatar img {
-        width: 36px;
-        height: 36px;
-      }
-      .header-text h2 {
-        font-size: 1.5rem;
-      }
-      .card-body {
-        padding: 1.2rem 1.4rem 1.8rem;
-      }
-      .question-box {
-        height: 56px;
-        font-size: 0.95rem;
-      }
-      .btn {
-        height: 52px;
-        font-size: 1rem;
-      }
-      h1 {
-        font-size: 2.4rem;
-      }
-      .logo-shell {
-        width: 88px;
-        height: 88px;
-      }
-      .logo-shell img {
-        width: 52px;
-        height: 52px;
-      }
-    }
 
-    /* animación sutil para loading */
-    @keyframes pulseSoft {
-      0% { opacity: 0.7; }
-      100% { opacity: 1; }
-    }
-    .is-loading {
-      animation: pulseSoft 0.9s infinite alternate;
+      .avatar img {
+        width: 34px;
+        height: 34px;
+      }
+
+      .header-text h2 {
+        font-size: 20px;
+      }
+
+      .header-text p {
+        font-size: 13px;
+      }
+
+      .card-body {
+        padding: 16px;
+      }
+
+      .question-box {
+        height: 58px;
+        font-size: 16px;
+        border-radius: 16px;
+      }
+
+      .answer-box {
+        min-height: 220px;
+        font-size: 15px;
+        padding: 18px;
+        border-radius: 18px;
+      }
+
+      .btn {
+        height: 54px;
+        font-size: 17px;
+      }
+
+      .helper-row {
+        gap: 8px;
+      }
+
+      .chip {
+        width: calc(50% - 4px);
+        text-align: center;
+        justify-content: center;
+      }
     }
   </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="top">
-    <div class="logo-shell">
-      <!-- Se respeta la ruta original: public/chambita.png (ícono principal) -->
-      <img src="public/chambita.png" alt="Chambatina" />
+  <div class="wrap">
+    <div class="top">
+      <div class="logo-shell">
+        <img src="public/Cahmabtinaapp.png" alt="Chambatina" />
+      </div>
+      <h1>Chambatina</h1>
+      <p class="subtitle">Rastrea envíos, consulta información y recibe ayuda de forma simple y moderna.</p>
     </div>
-    <h1>Chambatina</h1>
-    <p class="subtitle">Consulta · Rastreo · Asistencia</p>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="avatar">
+          <img src="public/Cahmabtinaapp.png" alt="Chambita" />
+        </div>
+        <div class="header-text">
+          <h2>Chambita</h2>
+          <p>Asistente virtual</p>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="question-wrap">
+          <input
+            id="mensaje"
+            class="question-box"
+            type="text"
+            placeholder="Escriba su CPK, carnet o su pregunta"
+            autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+          />
+        </div>
+
+        <div id="respuesta" class="answer-box">Escriba su número CPK, carnet o su pregunta y toque Enviar.</div>
+
+        <button id="btnEnviar" class="btn" type="button">Enviar</button>
+
+        <div class="helper-row">
+          <button class="chip" type="button" onclick="usarEjemplo('0255139')">Probar CPK</button>
+          <button class="chip" type="button" onclick="usarEjemplo('86012204812')">Probar carnet</button>
+          <button class="chip" type="button" onclick="usarEjemplo('¿Cuál es el precio por libra?')">Precio por libra</button>
+          <button class="chip" type="button" onclick="usarEjemplo('¿Qué tiempo demora un envío?')">Tiempo de envío</button>
+        </div>
+
+        <div id="iosTip" class="ios-tip">
+          En iPhone, para instalar la app, abra esta página en Safari, toque Compartir y luego “Agregar a pantalla de inicio”.
+        </div>
+
+        <div class="footer-note">Diseño visual renovado sin alterar el flujo funcional del chatbot.</div>
+      </div>
+    </div>
   </div>
 
-  <div class="card">
-    <div class="card-header">
-      <div class="avatar">
-        <img src="public/chambita.png" alt="Chambita" />
-      </div>
-      <div class="header-text">
-        <h2>Chambita</h2>
-        <p>Asistente virtual · elegante y precisa</p>
-      </div>
-    </div>
+  <script>
+    const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
 
-    <div class="card-body">
-      <input
-        id="mensaje"
-        class="question-box"
-        type="text"
-        placeholder="Escribe tu CPK, carnet o pregunta..."
-        autocomplete="off"
-        autocapitalize="off"
-        autocorrect="off"
-        spellcheck="false"
-      />
+    const mensaje = document.getElementById("mensaje");
+    const respuesta = document.getElementById("respuesta");
+    const btnEnviar = document.getElementById("btnEnviar");
+    const iosTip = document.getElementById("iosTip");
 
-      <div id="respuesta" class="answer-box">✨ Escribe tu número CPK, carnet o tu pregunta y pulsa Enviar.</div>
+    let procesando = false;
 
-      <button id="btnEnviar" class="btn" type="button">Enviar</button>
-
-      <div class="helper-row">
-        <button class="chip" type="button" onclick="usarEjemplo('0255139')">📦 CPK ejemplo</button>
-        <button class="chip" type="button" onclick="usarEjemplo('86012204812')">🆔 Carnet 11 dígitos</button>
-        <button class="chip" type="button" onclick="usarEjemplo('¿Cuál es el precio por libra?')">💰 Precio por libra</button>
-        <button class="chip" type="button" onclick="usarEjemplo('¿Qué tiempo demora un envío?')">⏱️ Tiempo de envío</button>
-      </div>
-
-      <div id="iosTip" class="ios-tip">
-        📱 En iPhone, abre con Safari y toca “Compartir” → “Agregar a pantalla de inicio”.
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  // ---------- FUNCIONALIDAD ORIGINAL COMPLETA (sin alteraciones lógicas) ----------
-  const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
-
-  const mensaje = document.getElementById("mensaje");
-  const respuesta = document.getElementById("respuesta");
-  const btnEnviar = document.getElementById("btnEnviar");
-  const iosTip = document.getElementById("iosTip");
-
-  let procesando = false;
-
-  function normalizarNumero(texto) {
-    return String(texto || "").replace(/\D/g, "");
-  }
-
-  function esCPK(texto) {
-    const limpio = normalizarNumero(texto);
-    return limpio.length >= 6 && limpio.length <= 10;
-  }
-
-  function esCarnet(texto) {
-    const limpio = normalizarNumero(texto);
-    return limpio.length === 11;
-  }
-
-  function setProcesando(valor) {
-    procesando = valor;
-    mensaje.disabled = valor;
-    btnEnviar.disabled = valor;
-    btnEnviar.textContent = valor ? "Consultando..." : "Enviar";
-    respuesta.classList.toggle("is-loading", valor);
-  }
-
-  function ponerRespuesta(texto) {
-    respuesta.textContent = texto;
-    respuesta.classList.remove("is-loading");
-  }
-
-  function ponerRespuestaHTML(html) {
-    respuesta.innerHTML = html;
-    respuesta.classList.remove("is-loading");
-  }
-
-  function usarEjemplo(texto) {
-    if (procesando) return;
-    mensaje.value = texto;
-    mensaje.focus();
-  }
-
-  function escapeHtml(texto) {
-    return String(texto || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  function construirRespuestaRastreo(data) {
-    const saludo = data.saludo || ("Hola, tu mercancía se encuentra en: " + (data.estado || "SIN ESTADO") + ".");
-    const fecha = data.fecha || "No disponible";
-    const descripcion = data.descripcion || "Sin descripción disponible.";
-    const estado = data.estado || "SIN ESTADO";
-
-    return `
-      <div class="status-badge">📌 Estado actual: ${escapeHtml(estado)}</div>
-      <strong>✨ ${escapeHtml(saludo)}</strong>
-      <br><br>
-      <strong>📅 Fecha:</strong> ${escapeHtml(fecha)}
-      <br><br>
-      <strong>📝 Descripción:</strong><br>
-      ${escapeHtml(descripcion)}
-    `;
-  }
-
-  function construirTarjetasCarnet(data) {
-    const registros = Array.isArray(data)
-      ? data
-      : Array.isArray(data.resultados)
-        ? data.resultados
-        : data.data && Array.isArray(data.data)
-          ? data.data
-          : data.items && Array.isArray(data.items)
-            ? data.items
-            : [];
-
-    if (!registros.length) {
-      return `<div class="respuesta-vacia">🔍 No se encontraron resultados para ese carnet.</div>`;
+    function normalizarNumero(texto) {
+      return String(texto || "").replace(/\D/g, "");
     }
 
-    return `
-      <div class="tarjetas-carnet">
-        ${registros.map(item => `
-          <div class="tarjeta-carnet">
-            <div class="tarjeta-carnet__fila"><strong>👤 Nombre:</strong> ${escapeHtml(item.nombre || item.cliente || item.name || "-")}</div>
-            <div class="tarjeta-carnet__fila"><strong>🆔 Carnet:</strong> ${escapeHtml(item.carnet || "-")}</div>
-            <div class="tarjeta-carnet__fila"><strong>📦 CPK:</strong> ${escapeHtml(item.cpk || item.codigo || "-")}</div>
-            <div class="tarjeta-carnet__fila"><strong>📍 Estado:</strong> ${escapeHtml(item.estado || "-")}</div>
-            <div class="tarjeta-carnet__fila"><strong>🗓️ Fecha:</strong> ${escapeHtml(item.fecha || "-")}</div>
-            <div class="tarjeta-carnet__fila"><strong>📄 Descripción:</strong> ${escapeHtml(item.descripcion || item.mercancia || "-")}</div>
-          </div>
-        `).join("")}
-      </div>
-    `;
-  }
-
-  async function enviarChat(texto) {
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mensaje: texto })
-      });
-      const raw = await res.text();
-      let data = null;
-      try { data = JSON.parse(raw); } catch(e) { data = null; }
-
-      if (!res.ok) {
-        ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
-        return;
-      }
-      if (!data) {
-        ponerRespuesta("El servidor respondió con un formato no válido.");
-        return;
-      }
-      if (!data.ok) {
-        ponerRespuesta(data.mensaje || "No se pudo procesar la solicitud.");
-        return;
-      }
-      ponerRespuesta(data.respuesta || data.reply || data.answer || data.message || "Sin respuesta.");
-    } catch (error) {
-      ponerRespuesta("No fue posible conectar con el servidor.");
-      console.error("Error chat:", error);
-    }
-  }
-
-  async function buscarCPK(codigo) {
-    const cpk = normalizarNumero(codigo);
-    if (!cpk) {
-      ponerRespuesta("Escriba un CPK válido.");
-      return;
-    }
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/rastreo/${cpk}`);
-      const raw = await res.text();
-      let data = null;
-      try { data = JSON.parse(raw); } catch(e) { data = null; }
-      if (!res.ok) {
-        ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
-        return;
-      }
-      if (!data) {
-        ponerRespuesta("El servidor respondió con un formato no válido.");
-        return;
-      }
-      if (!data.ok) {
-        ponerRespuesta(data.mensaje || "No se encontró el CPK.");
-        return;
-      }
-      ponerRespuestaHTML(construirRespuestaRastreo(data));
-    } catch (error) {
-      ponerRespuesta("No fue posible conectar con el servidor.");
-      console.error("Error rastreo:", error);
-    }
-  }
-
-  async function buscarCarnet(codigo) {
-    const carnet = normalizarNumero(codigo);
-    if (!carnet) {
-      ponerRespuesta("Escriba un carnet válido.");
-      return;
-    }
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/buscar-carnet?carnet=${encodeURIComponent(carnet)}`);
-      const raw = await res.text();
-      let data = null;
-      try { data = JSON.parse(raw); } catch(e) { data = null; }
-      if (!res.ok) {
-        ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
-        return;
-      }
-      if (!data) {
-        ponerRespuesta("El servidor respondió con un formato no válido.");
-        return;
-      }
-      if (!data.ok && !data.resultados) {
-        ponerRespuesta(data.mensaje || "No se encontraron resultados para ese carnet.");
-        return;
-      }
-      if (data.tipoBusqueda === "cpk") {
-        ponerRespuestaHTML(construirRespuestaRastreo(data));
-        return;
-      }
-      ponerRespuestaHTML(construirTarjetasCarnet(data.resultados || data));
-    } catch (error) {
-      ponerRespuesta("Error conectando con el servidor.");
-      console.error("Error carnet:", error);
-    }
-  }
-
-  async function procesar() {
-    if (procesando) return;
-    const texto = mensaje.value.trim();
-    if (!texto) return;
-
-    setProcesando(true);
-    ponerRespuesta("Consultando...");
-
-    try {
+    function esCPK(texto) {
       const limpio = normalizarNumero(texto);
-      // Prioridad: carnet 11 dígitos -> CPK 6-10 -> chat
-      if (limpio.length === 11) {
-        await buscarCarnet(limpio);
-      } else if (limpio.length >= 6 && limpio.length <= 10) {
-        await buscarCPK(limpio);
-      } else {
-        await enviarChat(texto);
-      }
-    } finally {
-      setProcesando(false);
+      return limpio.length >= 6 && limpio.length <= 10;
+    }
+
+    function esCarnet(texto) {
+      const limpio = normalizarNumero(texto);
+      return limpio.length === 11;
+    }
+
+    function setProcesando(valor) {
+      procesando = valor;
+      mensaje.disabled = valor;
+      btnEnviar.disabled = valor;
+      btnEnviar.textContent = valor ? "Consultando..." : "Enviar";
+      respuesta.classList.toggle("is-loading", valor);
+    }
+
+    function ponerRespuesta(texto) {
+      respuesta.textContent = texto;
+      respuesta.classList.remove("is-loading");
+    }
+
+    function ponerRespuestaHTML(html) {
+      respuesta.innerHTML = html;
+      respuesta.classList.remove("is-loading");
+    }
+
+    function usarEjemplo(texto) {
+      if (procesando) return;
+      mensaje.value = texto;
       mensaje.focus();
     }
-  }
 
-  btnEnviar.addEventListener("click", procesar);
-  mensaje.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      procesar();
+    function escapeHtml(texto) {
+      return String(texto || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
-  });
 
-  function esIOS() { return /iphone|ipad|ipod/i.test(window.navigator.userAgent); }
-  function esSafari() { return /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent); }
-  function estaInstalada() { return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true; }
+    function construirRespuestaRastreo(data) {
+      const saludo = data.saludo || ("Hola, tu mercancía se encuentra en: " + (data.estado || "SIN ESTADO") + ".");
+      const fecha = data.fecha || "No disponible";
+      const descripcion = data.descripcion || "Sin descripción disponible.";
+      const estado = data.estado || "SIN ESTADO";
 
-  if (esIOS() && esSafari() && !estaInstalada()) {
-    iosTip.style.display = "block";
-  }
+      return `
+        <div class="status-badge">Estado actual: ${escapeHtml(estado)}</div>
+        <strong>${escapeHtml(saludo)}</strong>
+        <br><br>
+        <strong>Fecha:</strong> ${escapeHtml(fecha)}
+        <br><br>
+        <strong>Descripción:</strong><br>
+        ${escapeHtml(descripcion)}
+      `;
+    }
 
-  window.addEventListener("load", () => {
-    mensaje.disabled = false;
-    mensaje.focus();
-  });
-</script>
+    function construirTarjetasCarnet(data) {
+      const registros = Array.isArray(data)
+        ? data
+        : Array.isArray(data.resultados)
+          ? data.resultados
+          : data.data && Array.isArray(data.data)
+            ? data.data
+            : data.items && Array.isArray(data.items)
+              ? data.items
+              : [];
+
+      if (!registros.length) {
+        return `<div class="respuesta-vacia">No se encontraron resultados para ese carnet.</div>`;
+      }
+
+      return `
+        <div class="tarjetas-carnet">
+          ${registros.map(item => `
+            <div class="tarjeta-carnet">
+              <div class="tarjeta-carnet__fila"><strong>Nombre:</strong> ${escapeHtml(item.nombre || item.cliente || item.name || "-")}</div>
+              <div class="tarjeta-carnet__fila"><strong>Carnet:</strong> ${escapeHtml(item.carnet || "-")}</div>
+              <div class="tarjeta-carnet__fila"><strong>CPK:</strong> ${escapeHtml(item.cpk || item.codigo || "-")}</div>
+              <div class="tarjeta-carnet__fila"><strong>Estado:</strong> ${escapeHtml(item.estado || "-")}</div>
+              <div class="tarjeta-carnet__fila"><strong>Fecha:</strong> ${escapeHtml(item.fecha || "-")}</div>
+              <div class="tarjeta-carnet__fila"><strong>Descripción:</strong> ${escapeHtml(item.descripcion || item.mercancia || "-")}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    async function enviarChat(texto) {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/chat`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ mensaje: texto })
+        });
+
+        const raw = await res.text();
+        let data = null;
+
+        try {
+          data = JSON.parse(raw);
+        } catch (e) {
+          data = null;
+        }
+
+        if (!res.ok) {
+          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
+          return;
+        }
+
+        if (!data) {
+          ponerRespuesta("El servidor respondió con un formato no válido.");
+          return;
+        }
+
+        if (!data.ok) {
+          ponerRespuesta(data.mensaje || "No se pudo procesar la solicitud.");
+          return;
+        }
+
+        ponerRespuesta(
+          data.respuesta || data.reply || data.answer || data.message || "Sin respuesta."
+        );
+
+      } catch (error) {
+        ponerRespuesta("No fue posible conectar con el servidor.");
+        console.error("Error chat:", error);
+      }
+    }
+
+    async function buscarCPK(codigo) {
+      const cpk = normalizarNumero(codigo);
+
+      if (!cpk) {
+        ponerRespuesta("Escriba un CPK válido.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/rastreo/${cpk}`);
+        const raw = await res.text();
+        let data = null;
+
+        try {
+          data = JSON.parse(raw);
+        } catch (e) {
+          data = null;
+        }
+
+        if (!res.ok) {
+          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
+          return;
+        }
+
+        if (!data) {
+          ponerRespuesta("El servidor respondió con un formato no válido.");
+          return;
+        }
+
+        if (!data.ok) {
+          ponerRespuesta(data.mensaje || "No se encontró el CPK.");
+          return;
+        }
+
+        ponerRespuestaHTML(construirRespuestaRastreo(data));
+
+      } catch (error) {
+        ponerRespuesta("No fue posible conectar con el servidor.");
+        console.error("Error rastreo:", error);
+      }
+    }
+
+    async function buscarCarnet(codigo) {
+      const carnet = normalizarNumero(codigo);
+
+      if (!carnet) {
+        ponerRespuesta("Escriba un carnet válido.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/buscar-carnet?carnet=${encodeURIComponent(carnet)}`);
+        const raw = await res.text();
+        let data = null;
+
+        try {
+          data = JSON.parse(raw);
+        } catch (e) {
+          data = null;
+        }
+
+        if (!res.ok) {
+          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
+          return;
+        }
+
+        if (!data) {
+          ponerRespuesta("El servidor respondió con un formato no válido.");
+          return;
+        }
+
+        if (!data.ok && !data.resultados) {
+          ponerRespuesta(data.mensaje || "No se encontraron resultados para ese carnet.");
+          return;
+        }
+
+        if (data.tipoBusqueda === "cpk") {
+          ponerRespuestaHTML(construirRespuestaRastreo(data));
+          return;
+        }
+
+        ponerRespuestaHTML(construirTarjetasCarnet(data.resultados || data));
+
+      } catch (error) {
+        ponerRespuesta("Error conectando con el servidor.");
+        console.error("Error carnet:", error);
+      }
+    }
+
+    async function procesar() {
+      if (procesando) return;
+
+      const texto = mensaje.value.trim();
+      if (!texto) return;
+
+      setProcesando(true);
+      ponerRespuesta("Consultando...");
+
+      try {
+        const limpio = normalizarNumero(texto);
+
+        console.log("Texto original:", texto);
+        console.log("Texto limpio:", limpio);
+
+        if (limpio.length === 11) {
+          console.log("➡️ Detectado como CARNET");
+          await buscarCarnet(limpio);
+          return;
+        }
+
+        if (limpio.length >= 6 && limpio.length <= 10) {
+          console.log("➡️ Detectado como CPK");
+          await buscarCPK(limpio);
+          return;
+        }
+
+        console.log("➡️ Enviado al CHAT");
+        await enviarChat(texto);
+
+      } finally {
+        setProcesando(false);
+        mensaje.focus();
+      }
+    }
+
+    btnEnviar.addEventListener("click", procesar);
+
+    mensaje.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        procesar();
+      }
+    });
+
+    function esIOS() {
+      return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    }
+
+    function esSafari() {
+      return /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
+    }
+
+    function estaInstalada() {
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }
+
+    if (esIOS() && esSafari() && !estaInstalada()) {
+      iosTip.style.display = "block";
+    }
+
+    window.addEventListener("load", function() {
+      mensaje.disabled = false;
+      mensaje.focus();
+    });
+  </script>
 </body>
 </html>
