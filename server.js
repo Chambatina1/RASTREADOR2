@@ -1,19 +1,12 @@
 import express from "express";
 import cors from "cors";
-import puppeteer from "puppeteer";
 
-// ------------------------------
-// Configuración del servidor
-// ------------------------------
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({ origin: "*", methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type"] }));
+app.use(cors({ origin: "*", methods: ["GET","POST","OPTIONS"], allowedHeaders: ["Content-Type"] }));
 app.use(express.json({ limit: "2mb" }));
 
-// ------------------------------
-// Contexto de negocio para el chat
-// ------------------------------
 const BUSINESS_CONTEXT = `
 - Precio por libra: 1.99 más 10 dólares por manejo, seguro, arancel y transporte.
 - Si recogemos en la puerta de su casa: 2.30 por libra.
@@ -81,9 +74,6 @@ COMPORTAMIENTO DEL ASISTENTE
 - Mantén tono serio, comercial y ordenado.
 `;
 
-// ------------------------------
-// Bases de datos manuales (respaldo)
-// ------------------------------
 const RAW_TRACKING_SOURCE = `
 CPK-0260443 - EN AGENCIA - 2025-02-10 - En espera de recogida en Miami
 CPK-0382912 - EN DISTRIBUCION - 2025-02-12
@@ -98,7 +88,6 @@ const CPK_DB = {
   "0998877": { estado: "EN ALMACEN", fecha: "2025-02-10", descripcion: "Retenido por falta de documentos" }
 };
 
-// Funciones auxiliares para base manual
 function generateDescriptionByState(estado) {
   const estadoUpper = estado.toUpperCase();
   if (estadoUpper.includes("ENTREGADO")) return "Paquete entregado al destinatario.";
@@ -173,170 +162,6 @@ function buildActiveTrackingDB() {
 
 const ACTIVE_TRACKING_DB = buildActiveTrackingDB();
 
-// ------------------------------
-// Caché para consultas en tiempo real
-// ------------------------------
-const cache = new Map(); // clave: cpk, valor: { data, timestamp }
-const CACHE_TTL = 60 * 60 * 1000; // 1 hora
-
-// ------------------------------
-// Función que consulta solvedc.com con Puppeteer
-// ------------------------------
-async function consultarCPKEnTiempoReal(cpk) {
-  console.log(`🔍 Consultando CPK ${cpk} en solvedc.com con Puppeteer...`);
-  let browser = null;
-  try {
-    // Lanzar navegador con configuración para entornos como Render
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--disable-gpu'
-      ]
-    });
-    const page = await browser.newPage();
-
-    // 1. Ir al login
-    await page.goto('https://www.solvedc.com/cargo/cargopack/v1/', { waitUntil: 'networkidle2', timeout: 30000 });
-
-    // 2. Hacer login (selectores según la página actual)
-    await page.waitForSelector('input[name="username"]', { timeout: 10000 });
-    await page.type('input[name="username"]', 'GEO MIA');
-    await page.type('input[name="password"]', 'GEO**091223');
-    await page.click('input[type="submit"]');
-    await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
-
-    // 3. Esperar que cargue la interfaz y buscar campo de CPK
-    await page.waitForTimeout(3000); // espera adicional
-    const selectores = [
-      'input[name="cpk"]', 'input[name="hbl"]', 'input[name="codigo"]',
-      'input[placeholder*="CPK"]', 'input[placeholder*="HBL"]',
-      '#cpk', '#hbl', '#codigo', 'input[type="search"]'
-    ];
-    let inputCpk = null;
-    for (const sel of selectores) {
-      inputCpk = await page.$(sel);
-      if (inputCpk) break;
-    }
-    if (!inputCpk) {
-      throw new Error('No se encontró el campo de entrada del CPK');
-    }
-
-    // 4. Escribir el CPK y enviar búsqueda
-    await inputCpk.type(cpk);
-    const botonBuscar = await page.$('button[type="submit"], input[type="submit"], .btn-buscar');
-    if (botonBuscar) {
-      await botonBuscar.click();
-    } else {
-      await page.keyboard.press('Enter');
-    }
-
-    // 5. Esperar la respuesta (ajustar según la interfaz)
-    await page.waitForTimeout(5000);
-
-    // 6. Extraer información de la página (ejemplo genérico)
-    let estado = 'DESCONOCIDO';
-    let fecha = null;
-    let descripcion = '';
-
-    // Intentar obtener estado desde elementos con clases comunes
-    const estadoElement = await page.$('.estado, .status, [class*="estado"], [class*="status"]');
-    if (estadoElement) {
-      estado = await page.evaluate(el => el.innerText, estadoElement);
-    } else {
-      // Buscar palabras clave en el texto de la página
-      const pageText = await page.evaluate(() => document.body.innerText);
-      const keywords = ['ENTREGADO', 'EN AGENCIA', 'EN DISTRIBUCION', 'EN ALMACEN', 'DESPACHO', 'CANAL ROJO'];
-      for (const kw of keywords) {
-        if (pageText.toUpperCase().includes(kw)) {
-          estado = kw;
-          break;
-        }
-      }
-    }
-
-    // Extraer fecha (formato YYYY-MM-DD)
-    const fechaMatch = await page.evaluate(() => {
-      const text = document.body.innerText;
-      const match = text.match(/\b(\d{4}-\d{2}-\d{2})\b/);
-      return match ? match[1] : null;
-    });
-    fecha = fechaMatch;
-
-    descripcion = `Información obtenida de solvedc.com para CPK ${cpk}. Estado: ${estado}`;
-
-    await browser.close();
-    return { estado, fecha, descripcion, fuente: 'tiempo_real' };
-  } catch (error) {
-    console.error(`Error consultando CPK ${cpk} en tiempo real:`, error);
-    if (browser) await browser.close();
-    return null;
-  }
-}
-
-// ------------------------------
-// Ruta /api/rastreo (con caché y respaldo manual + tiempo real)
-// ------------------------------
-app.get("/api/rastreo/:cpk", async (req, res) => {
-  let cpkParam = req.params.cpk;
-  let cpkNum = cpkParam.replace(/^CPK-/i, "");
-  
-  // 1. Buscar en base manual (rápido)
-  let trackingInfo = ACTIVE_TRACKING_DB[cpkNum];
-  if (trackingInfo) {
-    return res.json({
-      ok: true,
-      cpk: `CPK-${cpkNum}`,
-      fecha: trackingInfo.fecha || null,
-      estado: trackingInfo.estado,
-      descripcion: trackingInfo.descripcion,
-      fuente: 'manual'
-    });
-  }
-
-  // 2. Verificar caché
-  const cached = cache.get(cpkNum);
-  if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
-    return res.json({
-      ok: true,
-      cpk: `CPK-${cpkNum}`,
-      fecha: cached.data.fecha,
-      estado: cached.data.estado,
-      descripcion: cached.data.descripcion,
-      fuente: 'cache'
-    });
-  }
-
-  // 3. Consultar en tiempo real con Puppeteer
-  const realData = await consultarCPKEnTiempoReal(cpkNum);
-  if (realData) {
-    // Guardar en caché
-    cache.set(cpkNum, { data: realData, timestamp: Date.now() });
-    return res.json({
-      ok: true,
-      cpk: `CPK-${cpkNum}`,
-      fecha: realData.fecha,
-      estado: realData.estado,
-      descripcion: realData.descripcion,
-      fuente: 'tiempo_real'
-    });
-  }
-
-  // 4. No encontrado por ningún medio
-  res.status(404).json({
-    ok: false,
-    mensaje: "No se encontró el CPK en la base manual ni en el sistema de solvedc.com"
-  });
-});
-
-// ------------------------------
-// Ruta /api/health (sin cambios)
-// ------------------------------
 app.get("/api/health", (req, res) => {
   const countManual = Object.keys(CPK_DB).length;
   const countParsed = Object.keys(parseRawTracking(RAW_TRACKING_SOURCE)).length;
@@ -345,25 +170,38 @@ app.get("/api/health", (req, res) => {
     ok: true,
     cantidad_registros_manuales: countManual,
     cantidad_registros_parseados: countParsed,
-    cantidad_total_activa: totalActive,
-    modo_tiempo_real: "activado (Puppeteer)"
+    cantidad_total_activa: totalActive
   });
 });
 
-// ------------------------------
-// Ruta /api/chat (sin cambios)
-// ------------------------------
+app.get("/api/rastreo/:cpk", (req, res) => {
+  let cpkNum = req.params.cpk.replace(/^CPK-/i, "");
+  const trackingInfo = ACTIVE_TRACKING_DB[cpkNum];
+  if (trackingInfo) {
+    res.json({
+      ok: true,
+      cpk: `CPK-${cpkNum}`,
+      fecha: trackingInfo.fecha || null,
+      estado: trackingInfo.estado,
+      descripcion: trackingInfo.descripcion
+    });
+  } else {
+    res.status(404).json({
+      ok: false,
+      mensaje: "No se encontró el CPK"
+    });
+  }
+});
+
 app.post("/api/chat", async (req, res) => {
   const { mensaje } = req.body;
   if (!mensaje || typeof mensaje !== "string") {
     return res.status(400).json({ ok: false, mensaje: "El campo 'mensaje' es requerido y debe ser texto." });
   }
-
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ ok: false, mensaje: "Error de configuración del servidor: falta la clave de OpenAI." });
   }
-
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -380,30 +218,22 @@ app.post("/api/chat", async (req, res) => {
         temperature: 0.7
       })
     });
-
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("Error de OpenAI:", errorData);
-      return res.status(500).json({ ok: false, mensaje: "Error al comunicarse con OpenAI." });
+      throw new Error("Error de OpenAI");
     }
-
     const data = await response.json();
     const respuesta = data.choices[0]?.message?.content || "Lo siento, no pude generar una respuesta.";
     res.json({ ok: true, respuesta });
   } catch (error) {
-    console.error("Excepción en /api/chat:", error);
+    console.error(error);
     res.status(500).json({ ok: false, mensaje: "Error interno del servidor." });
   }
 });
 
-// 404 final
 app.use((req, res) => {
   res.status(404).json({ ok: false, mensaje: "Ruta no encontrada" });
 });
 
-// ------------------------------
-// Arranque del servidor
-// ------------------------------
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
