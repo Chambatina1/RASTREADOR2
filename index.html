@@ -586,7 +586,7 @@
       }
 
       try {
-        const res = await fetch(`${BACKEND_URL}/api/buscar/${encodeURIComponent(carnet)}`);
+        const res = await fetch(`${BACKEND_URL}/api/buscar-carnet?carnet=${encodeURIComponent(carnet)}`);
         const raw = await res.text();
         let data = null;
 
@@ -623,30 +623,44 @@
         console.error("Error carnet:", error);
       }
     }
+async function procesar() {
+  if (procesando) return;
 
-    async function procesar() {
-      if (procesando) return;
+  const texto = mensaje.value.trim();
+  if (!texto) return;
 
-      const texto = mensaje.value.trim();
-      if (!texto) return;
+  setProcesando(true);
+  ponerRespuesta("Consultando...");
 
-      setProcesando(true);
-      ponerRespuesta("Consultando...");
+  try {
+    const limpio = normalizarNumero(texto);
 
-      try {
-        if (esCarnet(texto)) {
-          await buscarCarnet(texto);
-        } else if (esCPK(texto)) {
-          await buscarCPK(texto);
-        } else {
-          await enviarChat(texto);
-        }
-      } finally {
-        setProcesando(false);
-        mensaje.focus();
-      }
+    console.log("Texto original:", texto);
+    console.log("Texto limpio:", limpio);
+
+    // 🔥 PRIORIDAD 1: CARNET (11 dígitos)
+    if (limpio.length === 11) {
+      console.log("➡️ Detectado como CARNET");
+      await buscarCarnet(limpio);
+      return;
     }
 
+    // 🔥 PRIORIDAD 2: CPK (6 a 10 dígitos)
+    if (limpio.length >= 6 && limpio.length <= 10) {
+      console.log("➡️ Detectado como CPK");
+      await buscarCPK(limpio);
+      return;
+    }
+
+    // 🔥 SI NO → CHAT
+    console.log("➡️ Enviado al CHAT");
+    await enviarChat(texto);
+
+  } finally {
+    setProcesando(false);
+    mensaje.focus();
+  }
+}
     btnEnviar.addEventListener("click", procesar);
 
     mensaje.addEventListener("keydown", function(e) {
