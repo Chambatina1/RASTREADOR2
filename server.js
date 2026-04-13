@@ -98,7 +98,7 @@ const CPK_DB = {
   "0998877": { estado: "EN ALMACEN", fecha: "2025-02-10", descripcion: "Retenido por falta de documentos" }
 };
 
-// Funciones de parseo (idénticas a las que ya tenías)
+// Funciones auxiliares para base manual
 function generateDescriptionByState(estado) {
   const estadoUpper = estado.toUpperCase();
   if (estadoUpper.includes("ENTREGADO")) return "Paquete entregado al destinatario.";
@@ -186,10 +186,18 @@ async function consultarCPKEnTiempoReal(cpk) {
   console.log(`🔍 Consultando CPK ${cpk} en solvedc.com con Puppeteer...`);
   let browser = null;
   try {
-    // Lanzar navegador (en Render necesitas configurar Chromium)
+    // Lanzar navegador con configuración para entornos como Render
     browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu'
+      ]
     });
     const page = await browser.newPage();
 
@@ -231,18 +239,17 @@ async function consultarCPKEnTiempoReal(cpk) {
     // 5. Esperar la respuesta (ajustar según la interfaz)
     await page.waitForTimeout(5000);
 
-    // 6. Extraer información de la página (aquí debes adaptar los selectores según la estructura real)
-    // Esto es un ejemplo genérico: busca elementos que contengan estado, fecha, descripción
+    // 6. Extraer información de la página (ejemplo genérico)
     let estado = 'DESCONOCIDO';
     let fecha = null;
     let descripcion = '';
 
-    // Intenta obtener el estado desde algún texto visible (ej: "Estado: ENTREGADO")
+    // Intentar obtener estado desde elementos con clases comunes
     const estadoElement = await page.$('.estado, .status, [class*="estado"], [class*="status"]');
     if (estadoElement) {
       estado = await page.evaluate(el => el.innerText, estadoElement);
     } else {
-      // Busca en toda la página palabras clave de estado
+      // Buscar palabras clave en el texto de la página
       const pageText = await page.evaluate(() => document.body.innerText);
       const keywords = ['ENTREGADO', 'EN AGENCIA', 'EN DISTRIBUCION', 'EN ALMACEN', 'DESPACHO', 'CANAL ROJO'];
       for (const kw of keywords) {
@@ -253,7 +260,7 @@ async function consultarCPKEnTiempoReal(cpk) {
       }
     }
 
-    // Extraer fecha (buscar formato YYYY-MM-DD)
+    // Extraer fecha (formato YYYY-MM-DD)
     const fechaMatch = await page.evaluate(() => {
       const text = document.body.innerText;
       const match = text.match(/\b(\d{4}-\d{2}-\d{2})\b/);
@@ -261,7 +268,6 @@ async function consultarCPKEnTiempoReal(cpk) {
     });
     fecha = fechaMatch;
 
-    // Descripción (puede ser un texto adicional)
     descripcion = `Información obtenida de solvedc.com para CPK ${cpk}. Estado: ${estado}`;
 
     await browser.close();
