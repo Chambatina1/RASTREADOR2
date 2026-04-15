@@ -8,7 +8,7 @@ const app = express();
 app.use(cors({ origin: "*", methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type", "x-session-id"] }));
 app.use(express.json({ limit: "2mb" }));
 
-// ================= CONTEXTO DEL CHAT (mejorado con tono amigable) =================
+// ================= CONTEXTO DEL CHAT (mejorado, más cálido) =================
 const BUSINESS_CONTEXT = `
 ASISTENTE OFICIAL CHAMBATINA - LOGÍSTICA Y ENVÍOS A CUBA.
 Eres amable, proactivo y siempre ofreces ayuda adicional. Responde en español claro, con emojis cuando sea apropiado.
@@ -22,69 +22,106 @@ Tiempos: 18 a 30 días una vez que toca puerto.
 Siempre que respondas, ofrece al final una sugerencia útil: "¿Necesitas saber el estado de otro paquete? Envíame el CPK", o "¿Quieres calcular el costo de otro peso?".
 `;
 
-// ================= BASE DE DATOS LOCAL (SOLO EJEMPLOS REPRESENTATIVOS) =================
-// He reducido a 5 registros típicos: entregado, en agencia, embarcado, en distribución, en almacén.
-// Conserva la estructura que usas en tu código (cpk, fecha, estado, descripcion, embarcador).
-const TRACKING_DB = {
-  "0255139": {
-    cpk: "0255139",
-    fecha: "2026-03-09",
-    estado: "ENTREGADO",
-    descripcion: "Miscelánea - Entregado a ELSA BARRIOS",
-    embarcador: "ELSA BARRIOS",
-    consignatario: ""
-  },
-  "0266860": {
-    cpk: "0266860",
-    fecha: "2026-04-14",
-    estado: "EN AGENCIA",
-    descripcion: "Generador eléctrico 2400W - En agencia de origen",
-    embarcador: "JULIO SÁNCHEZ HERNANDEZ",
-    consignatario: ""
-  },
-  "0265027": {
-    cpk: "0265027",
-    fecha: "2026-04-09",
-    estado: "EMBARCADO",
-    descripcion: "Misceláneas - En contenedor rumbo a Cuba",
-    embarcador: "TAMARA CABEZA MUNOZ",
-    consignatario: ""
-  },
-  "0260199": {
-    cpk: "0260199",
-    fecha: "2026-03-25",
-    estado: "EN TRANSITO SANTIAGO DE CUBA",
-    descripcion: "Batería 51V 100Ah - En tránsito hacia provincia",
-    embarcador: "ROBERTO PACHECO RAMIREZ",
-    consignatario: ""
-  },
-  "0259420": {
-    cpk: "0259420",
-    fecha: "2026-03-23",
-    estado: "EN ALMACEN CAMAGUEY",
-    descripcion: "Colchón - Almacén local en Camagüey",
-    embarcador: "ROSABEL SALAZAR BARRERAS",
-    consignatario: ""
-  }
-};
+// ================= BASE DE DATOS DESORGANIZADA (TAL CUAL LA TENÍAS) =================
+const RAW_TRACKING_SOURCE = `
+CHAMBATINA MIAMI	GEO MIA		CPK-0255139	ENTREGADO	Sí		ENVIO	MISCELANEA		2026-03-09	ELSA BARRIOS	86012204812
+CHAMBATINA MIAMI	GEO MIA		CPK-0255139	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	19.8	0.579	0	0	0
+CHAMBATINA MIAMI	GEO MIA		CPK-0266860	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	GENERADOR ELECTRICO 2400 W		2026-04-14	JULIO SÁNCHEZ HERNANDEZ		50092905351	CALLE PASEO DE LA PAZ # 362 Rpto. CHAMBERY e/ NUEVA GERONA y PRIMERA DEL OESTE, SANTA CLARA, VILLA CLARA	53382367	ISMAEL PÉREZ			0	0	1	59.1	1.588	0	0	0		
+CHAMBATINA MIAMI	GEO MIA		CPK-0266858	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16		2026-04-14	JULIO SÁNCHEZ HERNANDEZ		50092905351	CALLE PASEO DE LA PAZ # 362 Rpto. CHAMBERY e/ NUEVA GERONA y PRIMERA DEL OESTE, SANTA CLARA, VILLA CLARA	53382367	ISMAEL PÉREZ			0	0	1	43	2.37	219.32	0	0		
+CHAMBATINA MIAMI	GEO MIA		CPK-0266857	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16		2026-04-14	JULIO SÁNCHEZ HERNANDEZ		50092905351	CALLE PASEO DE LA PAZ # 362 Rpto. CHAMBERY e/ NUEVA GERONA y PRIMERA DEL OESTE, SANTA CLARA, VILLA CLARA	53382367	ISMAEL PÉREZ			0	0	1	58	2.37	219.32	0	0		
+CHAMBATINA MIAMI	GEO MIA		CPK-0266460	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	BATERIA		2026-04-13	MAURA EUGENIA RODRIGUEZ VELAZQUEZ		53111507356	CALLE CAVADA # 6 e/ FRANCISCO VICENTE AGUILERA y JUSTO AGUILERA, GIBARA, HOLGUIN	54800232	RADIEL CABRERA			0	0	1	118.74	1.588	0	0	0		
+CHAMBATINA MIAMI	GEO MIA		CPK-0259420	EN ALMACEN CAMAGUEY	Sí	169(CPK-313)	STORM/(CMCU 4961207)/(CWPS26170095)	ENVIO	COLCHON	11087	2026-03-23	ROSABEL SALAZAR BARRERAS		89070834296	CALLE 6 # 63 Rpto. EL PORVENIR e/ B y C, CAMAGUEY, CAMAGUEY	58279237	REYNALDO DANGER GOMEZ			0	0	1	80	3.375	0	0	0		
+... (aquí puedes poner el resto de tus líneas, todo el texto original que tenías) ...
+`;
 
-// ================= UTILIDADES =================
+// ================= UTILIDADES DE PARSING (las que ya tenías) =================
 function soloDigitos(v) { return String(v || "").replace(/\D/g, ""); }
 function primerNombre(nombre) { return String(nombre || "").trim().split(/\s+/)[0] || ""; }
-
+function parseFechaSegura(fechaTexto) {
+  const m = String(fechaTexto || "").match(/\b(20\d{2})-(\d{2})-(\d{2})\b/);
+  if (!m) return null;
+  const d = new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+function diasNaturalesEntre(desdeTexto, hastaFecha = new Date()) {
+  const desde = parseFechaSegura(desdeTexto);
+  if (!desde) return 0;
+  const hasta = new Date(hastaFecha);
+  desde.setHours(0,0,0,0);
+  hasta.setHours(0,0,0,0);
+  return Math.max(0, Math.floor((hasta - desde) / 86400000));
+}
+function normalizarLinea(linea) { return String(linea || "").replace(/\r/g, "").trim(); }
+function normalizarCPK(texto) { return soloDigitos(texto); }
 function construirSaludo(embarcador, estado) {
   const nombre = primerNombre(embarcador);
   if (nombre) return `📦 Hola ${nombre}, tu paquete está en: *${estado}*.`;
   return `📦 Hola, tu paquete está en: *${estado}*.`;
 }
 
-// ================= MEMORIA POR SESIÓN (para recordar último CPK) =================
+// ================= PARSER DE LA BASE DE DATOS DESORDENADA =================
+function extraerCPKDesdeLinea(linea) {
+  const m = String(linea).match(/CPK[-\s]?(\d{6,10})/i);
+  return m ? m[1] : "";
+}
+function extraerFechaDesdeLinea(linea) {
+  const m = String(linea).match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+  return m ? m[1] : "";
+}
+function extraerEstadoDesdeLinea(linea) {
+  const up = String(linea).toUpperCase();
+  if (up.includes("ENTREGADO")) return "ENTREGADO";
+  if (up.includes("DISTRIBUCION")) return "DISTRIBUCION";
+  if (up.includes("EN AGENCIA")) return "EN AGENCIA";
+  if (up.includes("EMBARCADO")) return "EMBARCADO";
+  if (up.includes("EN ALMACEN")) return "EN ALMACEN";
+  return "EN PROCESO";
+}
+function extraerNombreProbable(linea, fecha) {
+  if (!fecha) return "";
+  const idx = String(linea).indexOf(fecha);
+  if (idx === -1) return "";
+  const resto = String(linea).slice(idx + fecha.length).trim();
+  const parts = resto.split(/\t+/).filter(p => /^[A-ZÁÉÍÓÚÑ ]{4,}$/i.test(p) && !/\d/.test(p));
+  return parts[0] || "";
+}
+function extraerDescripcionProbable(linea) {
+  const parts = String(linea).split(/\t+/);
+  for (const p of parts) {
+    if (p && !p.match(/^(CPK|ENTREGADO|AGENCIA|DISTRIBUCION|SI|NO|ENVIO|\d+)/i) && p.length > 3) return p;
+  }
+  return "Sin descripción";
+}
+
+function parseTrackingSource(raw) {
+  const db = {};
+  const lineas = String(raw).split("\n").map(normalizarLinea).filter(Boolean);
+  for (const linea of lineas) {
+    const cpk = extraerCPKDesdeLinea(linea);
+    if (!cpk) continue;
+    const fecha = extraerFechaDesdeLinea(linea);
+    const estado = extraerEstadoDesdeLinea(linea);
+    const embarcador = extraerNombreProbable(linea, fecha);
+    const descripcion = extraerDescripcionProbable(linea);
+    // Solo guardamos la primera ocurrencia de cada CPK (o la última, según prefieras)
+    if (!db[cpk]) {
+      db[cpk] = { cpk, fecha, estado, descripcion, embarcador, consignatario: "" };
+    }
+  }
+  return db;
+}
+
+// Cargar la base de datos al iniciar
+let TRACKING_DB = parseTrackingSource(RAW_TRACKING_SOURCE);
+function getTrackingDb() { return TRACKING_DB; }
+
+// ================= MEMORIA POR SESIÓN =================
 const MEMORIA = new Map();
 function getSessionKey(req) { return req.headers["x-session-id"] || req.ip || "anon"; }
 function getMemory(key) {
   const item = MEMORIA.get(key);
   if (!item) return {};
-  if (Date.now() - (item.ts || 0) > 600000) MEMORIA.delete(key); // expira en 10min
+  if (Date.now() - (item.ts || 0) > 600000) MEMORIA.delete(key);
   return item;
 }
 function setMemory(key, patch) {
@@ -92,7 +129,7 @@ function setMemory(key, patch) {
   MEMORIA.set(key, { ...prev, ...patch, ts: Date.now() });
 }
 
-// ================= DETECCIÓN DE INTENCIONES (mejorada con más sinónimos) =================
+// ================= DETECCIÓN DE INTENCIONES (mejorada) =================
 function detectarPeso(texto) {
   const m = String(texto).toLowerCase().match(/(\d+(?:\.\d+)?)\s*(lb|libras?|lbs?)/);
   return m ? Number(m[1]) : null;
@@ -101,7 +138,7 @@ function detectarIntencion(texto) {
   const t = String(texto).toLowerCase();
   const cpk = soloDigitos(t);
   if (cpk && cpk.length >= 6) return { intent: "rastreo", cpk };
-  if (/(bicicleta|bici|bike)/.test(t)) return { intent: "bicicleta", tipo: "bicicleta" };
+  if (/(bicicleta|bici|bike)/.test(t)) return { intent: "bicicleta" };
   if (/(ecoflow|delta|river|powerstation)/.test(t)) return { intent: "ecoflow" };
   if (/(precio|costo|calcular|envío|cuánto cuesta)/.test(t) && detectarPeso(t)) return { intent: "calculo", peso: detectarPeso(t) };
   if (/(dirección|oficina|dónde está|ubicación|aloma)/.test(t)) return { intent: "direccion" };
@@ -111,7 +148,7 @@ function detectarIntencion(texto) {
   return { intent: "chat" };
 }
 
-// ================= CÁLCULOS =================
+// ================= RESPUESTAS INTELIGENTES (las que ya tenías) =================
 function calcularEnvio(peso) {
   const base = peso * 1.99;
   const total = base + 25;
@@ -150,19 +187,14 @@ function responderAgradecimiento() {
   return `😊 ¡De nada! Estoy aquí para ayudarte con tus envíos a Cuba. Si necesitas algo más, solo escríbeme. ¡Que tengas un excelente día!`;
 }
 
-// ================= RASTREO MEJORADO (con mensaje más cálido) =================
-function obtenerTracking(cpk) {
-  return TRACKING_DB[cpk] || null;
-}
-
 // ================= ENDPOINTS =================
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true, totalCPK: Object.keys(TRACKING_DB).length, mensaje: "Servidor activo y amigable 🚀" });
+  res.json({ ok: true, totalCPK: Object.keys(getTrackingDb()).length, mensaje: "Servidor activo y amigable 🚀" });
 });
 
 app.get("/api/rastreo/:cpk", (req, res) => {
   const cpk = soloDigitos(req.params.cpk);
-  const item = obtenerTracking(cpk);
+  const item = getTrackingDb()[cpk];
   if (!item) {
     return res.json({
       ok: false,
@@ -178,9 +210,9 @@ app.get("/api/rastreo/:cpk", (req, res) => {
 app.get("/api/buscar/:termino", async (req, res) => {
   const term = soloDigitos(req.params.termino);
   if (!term || term.length < 6) return res.status(400).json({ ok: false, mensaje: "El término debe tener al menos 6 dígitos." });
-  const item = obtenerTracking(term);
+  const item = getTrackingDb()[term];
   if (item) return res.json({ ok: true, tipo: "cpk", ...item, mensaje: construirSaludo(item.embarcador, item.estado) });
-  // Fallback a Kanguro (opcional, mantener)
+  // Fallback a Kanguro (opcional)
   try {
     const resp = await axios.post("https://www.solvedc.com/tracking/kanguro/", new URLSearchParams({ ci: term, hbl: "" }), { timeout: 10000 });
     const $ = cheerio.load(resp.data);
@@ -201,9 +233,9 @@ app.post("/api/chat", async (req, res) => {
   const mem = getMemory(session);
   const intent = detectarIntencion(mensaje);
 
-  // --- Rastreo por CPK ---
+  // Rastreo por CPK
   if (intent.intent === "rastreo") {
-    const item = obtenerTracking(intent.cpk);
+    const item = getTrackingDb()[intent.cpk];
     if (!item) {
       return res.json({ ok: false, respuesta: `❌ No encuentro el CPK ${intent.cpk}. ¿Estás seguro del número? Revisa tu recibo o prueba con otro.` });
     }
@@ -213,45 +245,45 @@ app.post("/api/chat", async (req, res) => {
     return res.json({ ok: true, respuesta: `${saludo}\n${info}\n\n¿Necesitas rastrear otro paquete? Envíame otro CPK.` });
   }
 
-  // --- Cálculo de envío por peso ---
+  // Cálculo de envío
   if (intent.intent === "calculo") {
     const respuesta = calcularEnvio(intent.peso);
     setMemory(session, { lastWeight: intent.peso });
     return res.json({ ok: true, respuesta });
   }
 
-  // --- EcoFlow ---
+  // EcoFlow
   if (intent.intent === "ecoflow") {
     const peso = intent.peso || mem.lastWeight;
     return res.json({ ok: true, respuesta: responderEcoflow(peso) });
   }
 
-  // --- Bicicleta ---
+  // Bicicleta
   if (intent.intent === "bicicleta") {
     return res.json({ ok: true, respuesta: responderBicicleta() });
   }
 
-  // --- Dirección ---
+  // Dirección
   if (intent.intent === "direccion") {
     return res.json({ ok: true, respuesta: responderDireccion() });
   }
 
-  // --- Tiempos ---
+  // Tiempo
   if (intent.intent === "tiempo") {
     return res.json({ ok: true, respuesta: responderTiempo() });
   }
 
-  // --- Cajas ---
+  // Cajas
   if (intent.intent === "cajas") {
     return res.json({ ok: true, respuesta: responderCajas() });
   }
 
-  // --- Agradecimiento ---
+  // Agradecimiento
   if (intent.intent === "agradecimiento") {
     return res.json({ ok: true, respuesta: responderAgradecimiento() });
   }
 
-  // --- Ayuda general (si el usuario escribe "ayuda" o no detectamos nada) ---
+  // Ayuda general
   if (mensaje.toLowerCase() === "ayuda" || intent.intent === "chat" && !process.env.OPENAI_API_KEY) {
     const ayuda = `🆘 *Comandos que entiendo*:
 - *rastreo [CPK]* → Ej: "rastreo 0255139"
@@ -267,7 +299,7 @@ app.post("/api/chat", async (req, res) => {
     return res.json({ ok: true, respuesta: ayuda });
   }
 
-  // --- OpenAI como fallback (si hay API key) ---
+  // OpenAI fallback
   if (!process.env.OPENAI_API_KEY) {
     return res.json({ ok: true, respuesta: "Lo siento, no entendí tu consulta. Escribe 'ayuda' para ver qué puedo hacer." });
   }
