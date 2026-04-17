@@ -3,13 +3,16 @@ import cors from "cors";
 
 const app = express();
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
+// Ruta base
 app.get("/", (req, res) => {
   res.send("Servidor funcionando 🚀");
 });
 
+// Ruta de prueba
 app.post("/test", (req, res) => {
   res.json({
     ok: true,
@@ -17,14 +20,23 @@ app.post("/test", (req, res) => {
   });
 });
 
+// Endpoint principal
 app.post("/api/records/query", (req, res) => {
-  res.json({
+  const { funcname, option, kind, idrecord } = req.body;
+
+  return res.json({
     ok: true,
-    message: "API funcionando",
-    data: req.body
+    message: "Endpoint funcionando",
+    received: {
+      funcname,
+      option,
+      kind,
+      idrecord
+    }
   });
 });
 
+// Puerto
 const PORT = 3000;
 
 app.listen(PORT, () => {
