@@ -3,43 +3,30 @@ import cors from "cors";
 
 const app = express();
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Ruta base
 app.get("/", (req, res) => {
   res.send("Servidor funcionando 🚀");
 });
 
-// Ruta de prueba
 app.post("/test", (req, res) => {
   res.json({
     ok: true,
-    message: "Ruta /test funcionando",
     body: req.body
   });
 });
 
-// Endpoint objetivo (simulación inicial)
 app.post("/api/records/query", (req, res) => {
-  const { funcname, option, kind, idrecord } = req.body;
-
   res.json({
     ok: true,
-    message: "Entró a /api/records/query",
-    received: {
-      funcname,
-      option,
-      kind,
-      idrecord
-    }
+    message: "API funcionando",
+    data: req.body
   });
 });
 
-// Puerto
 const PORT = 3000;
 
 app.listen(PORT, () => {
-  console.log(`Servidor en puerto ${PORT}`);
+  console.log("Servidor en puerto 3000");
 });
