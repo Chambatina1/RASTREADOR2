@@ -2,9 +2,7 @@ import express from "express";
 import cors from "cors";
 import axios from "axios";
 import * as cheerio from "cheerio";
-import recordsRoutes from "./routes/records.js";
 const app = express();
-
 
 app.use(cors({ origin: "*", methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type", "x-session-id"] }));
 app.use(express.json({ limit: "2mb" }));
@@ -17,9 +15,6 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
   res.send('Servidor funcionando 🚀');
 });
-
-// 🔌 después van tus rutas reales
-app.use("/api/records", recordsRoutes);
 
 // 🚀 levantar servidor (siempre al final)
 const PORT = process.env.PORT || 3000;
