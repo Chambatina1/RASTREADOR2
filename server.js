@@ -1,19 +1,16 @@
-import express from "express";
-import cors from "cors";
+const express = require("express");
+const cors = require("cors");
 
 const app = express();
 
-// middlewares
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// ruta base
 app.get("/", (req, res) => {
   res.send("Servidor funcionando 🚀");
 });
 
-// health
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
@@ -21,7 +18,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// endpoint de prueba
 app.post("/api/records/query", (req, res) => {
   console.log("BODY:", req.body);
 
@@ -32,7 +28,6 @@ app.post("/api/records/query", (req, res) => {
   });
 });
 
-// chat simple
 app.post("/api/chat", (req, res) => {
   const mensaje = String(req.body.mensaje || "").trim();
 
@@ -49,7 +44,6 @@ app.post("/api/chat", (req, res) => {
   });
 });
 
-// puerto
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
