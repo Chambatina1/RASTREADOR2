@@ -1,11 +1,20 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import pool from "./db.js";
+import pg from "pg";
 
 dotenv.config();
 
+const { Pool } = pg;
+
 const app = express();
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
 
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
@@ -18,13 +27,13 @@ app.get("/", (req, res) => {
 app.get("/api/health", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
-    res.json({
+    return res.json({
       ok: true,
       mensaje: "Servidor activo 🚀",
       db: result.rows[0]
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       mensaje: "Error conectando con la base de datos",
       error: error.message
@@ -59,6 +68,8 @@ app.post("/api/records/query", async (req, res) => {
       recibido: { funcname, option, kind, idrecord }
     });
   } catch (error) {
+    console.error("ERROR EN /api/records/query:", error);
+
     return res.status(500).json({
       ok: false,
       mensaje: "Error consultando la base de datos",
