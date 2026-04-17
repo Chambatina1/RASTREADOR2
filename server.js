@@ -8,6 +8,31 @@ const app = express();
 app.use(cors({ origin: "*", methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type", "x-session-id"] }));
 app.use(express.json({ limit: "2mb" }));
 
+const express = require("express");
+require("dotenv").config();
+
+const recordsRoutes = require("./routes/records");
+
+const app = express();
+
+// 🔧 middlewares (siempre van primero)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ✅ AQUÍ pegas tu ruta raíz
+app.get('/', (req, res) => {
+  res.send('Servidor funcionando 🚀');
+});
+
+// 🔌 después van tus rutas reales
+app.use("/api/records", recordsRoutes);
+
+// 🚀 levantar servidor (siempre al final)
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
+});
 // ================= CONTEXTO DEL CHAT (mejorado, más cálido) =================
 const BUSINESS_CONTEXT = `
 ASISTENTE OFICIAL CHAMBATINA - LOGÍSTICA Y ENVÍOS A CUBA.
