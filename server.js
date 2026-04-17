@@ -205,6 +205,15 @@ function responderAgradecimiento() {
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, totalCPK: Object.keys(getTrackingDb()).length, mensaje: "Servidor activo y amigable 🚀" });
 });
+app.post("/api/records/query", (req, res) => {
+  console.log("BODY:", req.body);
+
+  res.json({
+    ok: true,
+    mensaje: "Endpoint funcionando",
+    data: req.body
+  });
+});
 
 app.get("/api/rastreo/:cpk", (req, res) => {
   const cpk = soloDigitos(req.params.cpk);
@@ -225,20 +234,16 @@ app.get("/api/buscar/:termino", async (req, res) => {
   const term = soloDigitos(req.params.termino);
   if (!term || term.length < 6) return res.status(400).json({ ok: false, mensaje: "El término debe tener al menos 6 dígitos." });
   const item = getTrackingDb()[term];
-  if (item) return res.json({ ok: true, tipo: "cpk", ...item, mensaje: construirSaludo(item.embarcador, item.estado) });
-  // Fallback a Kanguro (opcional)
-  try {
-    const resp = await axios.post("https://www.solvedc.com/tracking/kanguro/", new URLSearchParams({ ci: term, hbl: "" }), { timeout: 10000 });
-    const $ = cheerio.load(resp.data);
-    const row = $("table tr").eq(1);
-    const tds = row.find("td");
-    if (tds.length) {
-      return res.json({ ok: true, tipo: "kanguro", cpk: tds.eq(1).text(), estado: tds.eq(2).text(), fecha: tds.eq(3).text() });
-    }
-  } catch (e) {}
-  res.status(404).json({ ok: false, mensaje: `No se encontró el CPK ${term} en nuestra base ni en Kanguro. ¿Quieres que lo busque manualmente? Escríbeme "ayuda".` });
-});
+  
+app.post("/api/records/query", (req, res) => {
+  console.log("BODY:", req.body);
 
+  res.json({
+    ok: true,
+    mensaje: "Endpoint funcionando",
+    data: req.body
+  });
+});
 app.post("/api/chat", async (req, res) => {
   const mensaje = String(req.body.mensaje || "").trim();
   if (!mensaje) return res.status(400).json({ ok: false, respuesta: "Por favor escribe algo. Por ejemplo: 'rastreo 0255139' o 'precio 10 lb'." });
