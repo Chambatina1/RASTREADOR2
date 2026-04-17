@@ -4,48 +4,21 @@ import cors from "cors";
 const app = express();
 
 app.use(cors());
-app.use(express.json({ limit: "2mb" }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Servidor funcionando 🚀");
+  res.send("OK");
 });
 
-app.get("/api/health", (req, res) => {
+app.post("/test", (req, res) => {
   res.json({
     ok: true,
-    mensaje: "Servidor activo 🚀"
+    body: req.body
   });
 });
 
-app.post("/api/records/query", (req, res) => {
-  console.log("BODY:", req.body);
-
-  return res.json({
-    ok: true,
-    mensaje: "Endpoint funcionando",
-    recibido: req.body
-  });
-});
-
-app.post("/api/chat", (req, res) => {
-  const mensaje = String(req.body.mensaje || "").trim();
-
-  if (!mensaje) {
-    return res.status(400).json({
-      ok: false,
-      respuesta: "Escribe algo"
-    });
-  }
-
-  return res.json({
-    ok: true,
-    respuesta: `Recibí: ${mensaje}`
-  });
-});
-
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+  console.log(`Servidor en puerto ${PORT}`);
 });
