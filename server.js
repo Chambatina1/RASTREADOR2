@@ -1,5 +1,5 @@
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
 
 const app = express();
 
@@ -21,7 +21,7 @@ app.get("/api/health", (req, res) => {
 app.post("/api/records/query", (req, res) => {
   console.log("BODY:", req.body);
 
-  res.json({
+  return res.json({
     ok: true,
     mensaje: "Endpoint funcionando",
     data: req.body
