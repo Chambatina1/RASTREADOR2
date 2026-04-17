@@ -2,21 +2,15 @@ import express from "express";
 import cors from "cors";
 import axios from "axios";
 import * as cheerio from "cheerio";
-
+import recordsRoutes from "./routes/records.js";
 const app = express();
+
 
 app.use(cors({ origin: "*", methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type", "x-session-id"] }));
 app.use(express.json({ limit: "2mb" }));
 
-const express = require("express");
-require("dotenv").config();
-
-const recordsRoutes = require("./routes/records");
-
-const app = express();
-
 // 🔧 middlewares (siempre van primero)
-app.use(express.json());
+
 app.use(express.urlencoded({ extended: true }));
 
 // ✅ AQUÍ pegas tu ruta raíz
