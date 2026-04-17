@@ -1,13 +1,19 @@
 {
-  "name": "mi-api",
+  "name": "rastreador2",
   "version": "1.0.0",
-  "type": "module",
+  "description": "API básica para pruebas de Chambari - Express + PostgreSQL",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
+  "keywords": [],
+  "author": "Geo",
+  "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.19.2"
+    "express": "^4.21.2",
+    "dotenv": "^16.4.5",
+    "pg": "^8.12.0"
   }
 }
